@@ -1,0 +1,92 @@
+---
+dataset_mode: mix
+
+checkpoints: './checkpoints/tensorboard-MPRnet'
+model_name: &MODEL_NAME MPRnet_GfS2_Itv10
+bmap_model: './checkpoints/reblur_gopro_exp2/D_net_latest.pth'
+MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
+DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
+model_class: MPRnet_finetune 
+resume_train: False 
+which_epoch: latest
+start_epoch: 0
+save_epoch: 20
+display_freq: 20
+val_freq: 5
+crop_size_X: 256
+crop_size_Y: 256
+gpu: [0,1]
+input_nc: 3
+output_nc: 3
+init_type: xavier
+init_gain: 0.02
+epoch: 200
+batch_size: 2
+is_training: true
+iteration_G: 1
+load_only_G: false
+
+train:
+  blur_videos1: /home/yjz/hdd/deblur_datasets/Gopro_1080p/train/**/blur/*.png
+  deblur_videos1: /home/yjz/hdd/deblur_datasets/Gopro_1080p/train/**/sharp/*.png
+  blur_videos2: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*blurryimg.png
+  deblur_videos2: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*gtimg.png
+  real_blur_videos: /home/yjz/datasets/S10_finetune_set/blur/*/*.png
+  sharp_videos: /home/yjz/datasets/S10_finetune_set/sharp/*/*.png
+  real_blur_videos2: /home/yjz/datasets/S10_blur_set/train/blur/*/*.png
+  sharp_videos2: /home/yjz/datasets/S10_blur_set/train/sharp/*/*.png
+  lr_D: 0.0001
+  lr_G: 0.00005
+  lr_M: 0.0001
+  beta1: 0.9
+  optimizer: adam
+  scheduler: linear
+  warmup_epoch: 0
+  relative_reblur: true
+  absolute_reblur: false
+  identical_loss: false
+  lambda_G_f_sharp: 2
+  lambda_G_idt: 0
+  lambda_G_tv: 1
+  lambda_G_Itv: 10
+  lambda_G_content: 100
+  lambda_G_reblur: 50
+  lambda_G_global: 0.1
+  lambda_D_reblur: 1
+  lambda_D_blur: 0.002
+  lambda_D_f_sharp: 0
+  lambda_D_sharp: 0.002
+  lambda_D_tv: 0.002
+  global_D: true
+  R1_grad_penalty: False
+  lambda_R1_gamma: 10
+
+val:
+  val_batch_size: 1
+  verbose: False
+  blur_videos: /home/yjz/datasets/Gopro_1080p/test/**/blur/*.png
+  deblur_videos: /home/yjz/datasets/Gopro_1080p/test/**/sharp/*.png
+  real_blur_videos: /home/yjz/datasets/S10_blur_set/Real_test/*/*.png
+  sharp_videos: /home/yjz/datasets/S10_blur_set/Real_test/*/*.png
+
+model:
+  g_name: MPRnet
+  d_name: Offset
+  use_sigmoid: 0
+  norm: 
+
+test:
+  result_dir: ./exp_results/
+  save_dir: *MODEL_NAME
+  which_epoch: latest
+  verbose: True
+  test_batch_size: 1
+  dataset_mode: unpair
+  blur_videos: /home/yjz/datasets/Gopro_1080p/train/**/blur/*.png
+  deblur_videos: /home/yjz/datasets/Gopro_1080p/train/**/sharp/*.png
+  real_blur_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png
+  sharp_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
+
+
+
+

@@ -1,0 +1,3 @@
+[submodule "models/msssim"]
+	path = models/msssim
+	url = https://github.com/jorge-pessoa/pytorch-msssim.git

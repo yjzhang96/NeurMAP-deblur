@@ -1,0 +1,84 @@
+checkpoints: './checkpoints/Gopro_deblur'
+model_name: &MODEL_NAME SemiGo_DMPHN_exp2
+bmap_model: './checkpoints/reblur_gopro_exp2/D_net_latest.pth'
+MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
+DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
+model_class: GOPRO_deblur
+resume_train: False 
+which_epoch: latest
+start_epoch: 0
+save_epoch: 2
+display_freq: 2
+val_freq: 4
+crop_size_X: 256
+crop_size_Y: 256
+gpu: [0,1]
+input_nc: 3
+output_nc: 3
+init_type: xavier
+init_gain: 0.02
+epoch: 400
+batch_size: 8
+is_training: true
+iteration_G: 1
+load_only_G: false
+
+train:
+  blur_videos: /home/yjz/datasets/Gopro_1080p/train/**/blur/*.png
+  deblur_videos: /home/yjz/datasets/Gopro_1080p/train/**/sharp/*.png
+  real_blur_videos: /home/yjz/datasets/Gopro_1080p/train/**/blur/*.png
+  sharp_videos: /home/yjz/datasets/Gopro_1080p/train/**/sharp/*.png
+  lr_D: 0.0001
+  lr_G: 0.00005
+  lr_M: 0.00005
+  beta1: 0.9
+  optimizer: adam
+  scheduler: linear
+  warmup_epoch: 0
+  relative_reblur: true
+  absolute_reblur: false
+  identical_loss: false
+  lambda_G_f_sharp: 0.5
+  lambda_G_idt: 0
+  lambda_G_tv: 1
+  lambda_G_content: 50
+  lambda_G_reblur: 10
+  lambda_G_global: 1
+  lambda_D_reblur: 1
+  lambda_D_blur: 0.001
+  lambda_D_f_sharp: 0.001
+  lambda_D_sharp: 0.002
+  lambda_D_tv: 0.002
+  global_D: true
+  R1_grad_penalty: False
+  lambda_R1_gamma: 10
+
+val:
+  val_batch_size: 1
+  verbose: False
+  blur_videos: /home/yjz/datasets/Gopro_1080p/test/**/blur/*.png
+  deblur_videos: /home/yjz/datasets/Gopro_1080p/test/**/sharp/*.png
+  real_blur_videos: /home/yjz/datasets/Gopro_1080p/test/**/blur/*.png
+  sharp_videos: /home/yjz/datasets/Gopro_1080p/test/**/sharp/*.png
+
+model:
+  g_name: DMPHN
+  d_name: Offset
+  use_sigmoid: 0
+  norm: 
+
+test:
+  result_dir: ./exp_results
+  save_dir: *MODEL_NAME
+  verbose: True
+  test_batch_size: 1
+  which_epoch: latest
+  dataset_mode: pair
+  blur_videos: /home/yjz/datasets/Synthetic_blur/test_small/*blurryimg.png
+  deblur_videos: /home/yjz/datasets/Synthetic_blur/test_small/*gtimg.png
+  real_blur_videos: /home/yjz/datasets/S10_blur_set/train/**/*.png
+
+
+
+
+

@@ -1,0 +1,8 @@
+# ignore checkpoints/
+checkpoints/
+*.pyc
+exp_results
+results
+pretrain_models
+*.png
+deblur-evaluation

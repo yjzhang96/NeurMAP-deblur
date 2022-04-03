@@ -62,11 +62,10 @@ python test.py --config=configs/config_test.yaml
 ### Model
 We have put the pretrained model in the Google drive.
 
-|   Dataset     |     Model  | | | |
-| :---------: |     :-------:       |  :-------: |   :--------:  |   :---------: |
-|     kernel-synthesized    |     35.82           |   33.45    |      33.79    |    34.68      |
-|    SSIM     |     0.9800          |   0.9669   |      0.9687   |    0.9740     |
+|   Dataset     |     Model  | |
+| :---------: |     :-------:       | :-------:  |
+|     kernel-synthesized    |     [DMPHN](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)          |   [MPRNet](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)       |
+|    RealBlur     |     [DMPHN](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)          |   [MPRNet](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)       |  
 
-Also, we provide our pretrained motion-aware deblurring [model](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh).
 
 

@@ -1,15 +1,15 @@
-# Motion-ETR (official pytorch implementation)
-[[paper]](https://ieeexplore.ieee.org/abstract/document/9551756/) [[video]](https://drive.google.com/file/d/1TnNUFoDy2VQ8pI4mUph92WTKG68Y5F7s/view?usp=sharing)
+# NeurMAP-deblur (official pytorch implementation)
+[[paper]]() [[video]]()
 
-This repository provides the official PyTorch implementation of the paper accepted in TPAMI:
+This repository provides the official PyTorch implementation of the paper:
 
->Exposure Trajectory Recovery from Motion Blur 
+>NeurMAP: Neural Maximum A Posteriori Estimation on Unpaired Data for Motion Deblurring
 > 
->Youjian Zhang, Chaoyue Wang, Stephen J. Maybank, Dacheng Tao
+>Youjian Zhang, Chaoyue Wang, Dacheng Tao
 >
->Abstract: Motion blur in dynamic scenes is an important yet challenging research topic. Recently, deep learning methods have achieved impressive performance for dynamic scene deblurring. However, the motion information contained in a blurry image has yet to be fully explored and accurately formulated because: (i) the ground truth of dynamic motion is difficult to obtain; (ii) the temporal ordering is destroyed during the exposure; and (iii) the motion estimation from a blurry image is highly ill-posed. By revisiting the principle of camera exposure, motion blur can be described by the relative motions of sharp content with respect to each exposed position. In this paper, we define exposure trajectories, which represent the motion information contained in a blurry image and explain the causes of motion blur. A novel motion offset estimation framework is proposed to model pixel-wise displacements of the latent sharp image at multiple timepoints. Under mild constraints, our method can recover dense, (non-)linear exposure trajectories, which significantly reduce temporal disorder and ill-posed problems. Finally, experiments demonstrate that the recovered exposure trajectories not only capture accurate and interpretable motion information from a blurry image, but also benefit motion-aware image deblurring and warping-based video extraction tasks.
+>Abstract: Real-world dynamic scene deblurring has long been a challenging task since paired blurry-sharp training data is unavailable. Conventional Maximum A Posteriori estimation and deep learning-based deblurring methods are restricted by handcrafted priors and synthetic blurry-sharp training pairs respectively, thereby failing to generalize to real dynamic blurriness. To this end, we propose a Neural Maximum A Posteriori (NeurMAP) estimation framework for training neural networks to recover blind motion information and sharp content from unpaired data. The proposed NeruMAP consists of a motion estimation network and a deblurring network which are trained jointly to model the (re)blurring process (i.e. likelihood function). Meanwhile, the motion estimation network is trained to explore the motion information in images by applying implicit dynamic motion prior, and in return enforces the deblurring network training (i.e. providing sharp image prior). The proposed NeurMAP is an orthogonal approach to existing deblurring neural networks, and is the first framework that enables training image deblurring networks on unpaired datasets. Experiments demonstrate our superiority on both quantitative metrics and visual quality over state-of-the-art methods. 
 
-<img src= "https://github.com/yjzhang96/Motion-ETR/blob/main/pics/reblur_pipeline.png" width="90%">
+<img src= "xx" width="90%">
 
 ---
 ## Contents
@@ -45,32 +45,26 @@ Organize the dataset in the following form:
 ### Training 
 - To train motion offset estimation model, run the following command:
 ```bash
-sh run_train.sh
+sh run_semi_train.sh
 ```
-Note that you can replace the argument ```offset_mode``` from ```lin/bilin/quad``` to decide the constraint of the estimated trajectory as ```linear/bi-linear/quadratic```
-
-- To train the deblurring model, run the same command and change the argument ```blur_direction``` from ```"reblur"``` to ```"deblur"```
 
 
 ### Test
 - To train motion offset estimation model, run the following command:
 ```bash
-sh run_test.sh
+python test.py --config=configs/config_test.yaml
 ```
-- To train the deblurring model, run the same command and change the argument ```blur_direction``` from ```"reblur"``` to ```"deblur"```
 
 
 ### Performance
-We provide some examples of our quadratic exposure trajectory and the cooresponding reblurred images.
-
-<img src= "https://github.com/yjzhang96/Motion-ETR/blob/main/pics/eg_exposure_trajectory.png" width="90%">
+- to be updated
 
 ### Model
-We have put the pretrained quadratic model in directory ```./pretrain_models/MTR_Gopro_quad```, and we will provide other models which mentioned in the paper in the Google drive.
+We have put the pretrained model in the Google drive.
 
-|   Model     |  [Zero constraint](https://drive.google.com/drive/u/0/folders/1A9DMoxk32z79uNhDqZK6ZSzr5MwNTAZ1)    |   [Linear](https://drive.google.com/drive/u/0/folders/1GpFlyj-gxb1QhBB_THssn-b1LE8Zdkeu)   |   [Bi-linear](https://drive.google.com/drive/u/0/folders/1twsAvk7kJ7XdtR2rfiHq7ZqkSJLi3dp3)   |   [Quadratic](https://drive.google.com/drive/u/0/folders/1UtDGOcCa_PWT0-xA5erGz4pbUCCpJmIw)   |
+|   Dataset     |     Model  | | | |
 | :---------: |     :-------:       |  :-------: |   :--------:  |   :---------: |
-|     PSNR    |     35.82           |   33.45    |      33.79    |    34.68      |
+|     kernel-synthesized    |     35.82           |   33.45    |      33.79    |    34.68      |
 |    SSIM     |     0.9800          |   0.9669   |      0.9687   |    0.9740     |
 
 Also, we provide our pretrained motion-aware deblurring [model](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh).

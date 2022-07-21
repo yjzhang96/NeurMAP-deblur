@@ -173,7 +173,7 @@ class BlurryVideo(data.Dataset):
                 self.sharp_dir = config['test']['sharp_videos']
 
         framesPath = _make_dataset(self.blurry_dir,self.sharp_dir,config)
-        if train and config['train']['real_blur_videos2']:
+        if train and config['train'].get('real_blur_videos2',None):
             framesPath += _make_dataset(blurry_dir2,sharp_dir2,config)
         # Raise error if no images found in root.
         if len(framesPath) == 0:

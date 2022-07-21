@@ -160,12 +160,12 @@ class BlurryVideo(data.Dataset):
         if train:
             self.blurry_dir = config['train']['real_blur_videos']
             self.sharp_dir = config['train']['sharp_videos']
-            if config['train']['real_blur_videos2']:
+            if config['train'].get('real_blur_videos2',None):
                 blurry_dir2 = config['train']['real_blur_videos2']
                 sharp_dir2 = config['train']['sharp_videos2']
 
         else:
-            if config['is_training']:
+            if config.get('is_training', None):
                 self.blurry_dir = config['val']['real_blur_videos']
                 self.sharp_dir = config['val']['sharp_videos']
             else:

@@ -310,7 +310,7 @@ class DeblurNet():
         # apply teacher model to regularize content
         with torch.no_grad():
             fake_S_teacher = self.net_teacher(self.real_B) 
-        if self.config['train']['teacher_loss']:
+        if self.config['train']['lambda_G_teacher']>0:
             self.loss_teach = self.L1loss(self.fake_S, fake_S_teacher.detach())
         if self.config['train']['identical_loss']:
             real_S_idt = self.net_G(self.real_S)

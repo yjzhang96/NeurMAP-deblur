@@ -31,11 +31,11 @@ def make_dataset(dir):
     return images
 
 class AlignedDataset(data.Dataset):
-    def __init__(self, opt, train):
-        # super(AlignedDataset,self).__init__(opt)
-        self.opt = opt
+    def __init__(self, config, train):
+        # super(AlignedDataset,self).__init__(config)
+        self.config = config
         self.train = train
-        self.root = opt.blurry_videos
+        self.root = config['blurry_videos']
         if train:
             self.dir_AB = os.path.join(self.root, 'train') 
         else:
@@ -44,14 +44,14 @@ class AlignedDataset(data.Dataset):
         self.AB_paths = sorted(make_dataset(self.dir_AB))
 
         # we use more data augmentation
-        # if opt.phase == 'train':
+        # if config['phase'] == 'train':
         #     multiframe_data = ['9frame']
         #     dir_root = os.path.dirname(self.root)
         #     for i in multiframe_data:
-        #         dir_multiframe = os.path.join(dir_root,"gopro_%s"%i,opt.phase)
+        #         dir_multiframe = os.path.join(dir_root,"gopro_%s"%i,config['phase'])
         #         multiframe_paths = sorted(make_dataset(dir_multiframe))
         #         self.AB_paths += multiframe_paths
-        #assert(opt.resize_or_crop == 'resize_and_crop')
+        #assert(config['resize_or_crop'] == 'resize_and_crop')
 
         # transform_list = [transforms.ToTensor(),
         #                   transforms.Normalize((0.5, 0.5, 0.5),
@@ -67,7 +67,7 @@ class AlignedDataset(data.Dataset):
 
         # data aug with resize
         # input_sizeX,input_sizeY = AB.size[0],AB.size[1] 
-        # if self.opt.phase =='train':
+        # if self.config['phase'] =='train':
         #     # if random.random() < 0.5:
         #     resize = random.uniform(1,1.5) 
         #     AB = AB.resize((int(input_sizeX * resize), int(input_sizeY*resize)), Image.BICUBIC)
@@ -77,13 +77,13 @@ class AlignedDataset(data.Dataset):
         w_total = AB.size(2)
         w = int(w_total / 2)
         h = AB.size(1)
-        w_offset = random.randint(0, max(0, w - self.opt.crop_size_X - 1))
-        h_offset = random.randint(0, max(0, h - self.opt.crop_size_Y - 1))
+        w_offset = random.randint(0, max(0, w - self.config['crop_size_X'] - 1))
+        h_offset = random.randint(0, max(0, h - self.config['crop_size_Y'] - 1))
 
-        A = AB[:, h_offset:h_offset + self.opt.crop_size_Y,
-               w_offset:w_offset + self.opt.crop_size_X]
-        B = AB[:, h_offset:h_offset + self.opt.crop_size_Y,
-               w + w_offset:w + w_offset + self.opt.crop_size_X]
+        A = AB[:, h_offset:h_offset + self.config['crop_size_Y'],
+               w_offset:w_offset + self.config['crop_size_X']]
+        B = AB[:, h_offset:h_offset + self.config['crop_size_Y'],
+               w + w_offset:w + w_offset + self.config['crop_size_X']]
 
         # if not crop in test time
         if self.train:
@@ -101,7 +101,7 @@ class AlignedDataset(data.Dataset):
             A = AB[:,:,:w]
             B = AB[:,:,w:w_total]
         return {'B': A, 'S': B,
-                'B_path': AB_path}
+                'B_path': AB_path, 'gt':True}
 
     def __len__(self):
         return len(self.AB_paths)

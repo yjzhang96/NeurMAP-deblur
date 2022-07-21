@@ -18,7 +18,7 @@ from data import dataloader_unpair
 
 
 from models import model_baseline_finetune_diff, model_semi_double_D_GDaddB_finetune
-from models import model_MPRnet_finetune
+from models import model_baseline_finetune, model_baseline_finetune_unpair
 
 from utils import utils_new as utils
 from tensorboardX import SummaryWriter
@@ -48,21 +48,12 @@ os.system('cp %s %s'%(args.config_file, model_save_dir))
 #     device = torch.device("cpu")
 
 ### initialize model
-if config['model_class'] == "Semi_blurD":
-    Model = model_semi_double_D
-    os.system('cp %s %s'%('models/model_semi_double_D.py', model_save_dir))
-elif config['model_class'] == "CGAN_double_semi":
-    Model = model_semi_double_cGAN
-    os.system('cp %s %s'%('models/model_semi_double_cGAN.py', model_save_dir))
-elif config['model_class'] == "Semi_doubleD_addB_finetune":
+if config['model_class'] == "Semi_doubleD_addB_finetune":
     Model = model_semi_double_D_GDaddB_finetune
     os.system('cp %s %s'%('models/model_semi_double_D_GDaddB_finetune.py', model_save_dir))
-elif config['model_class'] == "rebuttal":
-    Model = model_semi_rebuttal
-    os.system('cp %s %s'%('models/model_semi_rebuttal.py', model_save_dir))
-elif config['model_class'] == "MPRnet_finetune":
-    Model = model_MPRnet_finetune
-    os.system('cp %s %s'%('models/model_MPRnet_finetune.py', model_save_dir))
+elif config['model_class'] == "baseline_finetune":
+    Model = model_baseline_finetune
+    os.system('cp %s %s'%('models/model_baseline_finetune.py', model_save_dir))
 elif config['model_class'] == "Diff_GT":
     Model = model_baseline_finetune_diff
     os.system('cp %s %s'%('models/model_baseline_finetune_diff.py', model_save_dir))

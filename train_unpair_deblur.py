@@ -42,10 +42,11 @@ if not os.path.exists(model_save_dir):
 os.system('cp %s %s'%(args.config_file, model_save_dir))
 
 
+
 ### initialize model
-if config['model_class'] == "GOPRO_deblur":
-    Model = model_semi_double_D_GOPRO
-    os.system('cp %s %s'%('models/model_semi_double_D_GOPRO.py', model_save_dir))
+if config['model_class'] == "baseline_finetune_unpair":
+    Model = model_baseline_finetune_unpair
+    os.system('cp %s %s'%('models/model_baseline_finetune_unpair.py', model_save_dir))
 
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
@@ -61,21 +62,12 @@ if config['dataset_mode'] == 'pair':
     val_dataloader = DataLoader(val_dataset,
                                     batch_size=config['val']['val_batch_size'],
                                     shuffle = True)
-elif config['dataset_mode'] == 'mix':
-    train_dataset = dataloader_pair.BlurryVideo(config, train= True)
-    train_dataloader = DataLoader(train_dataset,
-                                    batch_size=config['batch_size']//2,
-                                    shuffle = True,
-                                    num_workers=16)
+elif config['dataset_mode'] == 'unpair':
     train_dataset_unpair = dataloader_unpair.BlurryVideo(config, train= True)
     train_dataloader_unpair = DataLoader(train_dataset_unpair,
                                     batch_size=config['batch_size']//2,
                                     shuffle = True,
                                     num_workers=16)
-    val_dataset = dataloader_pair.BlurryVideo(config, train= False)
-    val_dataloader = DataLoader(val_dataset,
-                                    batch_size=config['val']['val_batch_size'],
-                                    shuffle = True)
     val_dataset_unpair = dataloader_unpair.BlurryVideo(config, train= False)
     val_dataloader_unpair = DataLoader(val_dataset_unpair,
                                     batch_size=config['val']['val_batch_size'],
@@ -134,39 +126,14 @@ def display_loss(loss,epoch,tot_epoch,step,step_per_epoch,time):
         log.write(messege+'\n')
 
 # validation
-def validation_pair(epoch):
-    t_b_psnr = 0
-    t_s_psnr = 0
-    t_fakeS_reblur_psnr = 0
-    cnt = 0
-    start_time = time.time()
-    print('--------validation begin----------')
-    for index, batch_data in enumerate(val_dataloader):
-        model.set_input(batch_data)
-        reblur_S_psnr, reblur_fS_psnr, sharp_blur = model.test(validation=True)
-        t_b_psnr += reblur_S_psnr
-        t_fakeS_reblur_psnr += reblur_fS_psnr
-        t_s_psnr += sharp_blur
-        cnt += 1
-        if index > 100:
-            break
-    message = 'Pair-data epoch %s blur PSNR: %.2f \n'%(epoch, t_fakeS_reblur_psnr/cnt)
-    message += 'Pair-data epoch %s deblur PSNR: %.2f \n'%(epoch, t_s_psnr/cnt)
-    print(message)
-    print('using time %.3f'%(time.time()-start_time))
-    log_name = os.path.join(config['checkpoints'],config['model_name'],'psnr_log.txt')   
-    with open(log_name,'a') as log:
-        log.write(message)
-    return (t_b_psnr/cnt,t_fakeS_reblur_psnr/cnt, t_s_psnr/cnt)
-
-# def validation_unpair(epoch):
+# def validation_pair(epoch):
 #     t_b_psnr = 0
 #     t_s_psnr = 0
 #     t_fakeS_reblur_psnr = 0
 #     cnt = 0
 #     start_time = time.time()
 #     print('--------validation begin----------')
-#     for index, batch_data in enumerate(val_dataloader_unpair):
+#     for index, batch_data in enumerate(val_dataloader):
 #         model.set_input(batch_data)
 #         reblur_S_psnr, reblur_fS_psnr, sharp_blur = model.test(validation=True)
 #         t_b_psnr += reblur_S_psnr
@@ -175,8 +142,8 @@ def validation_pair(epoch):
 #         cnt += 1
 #         if index > 100:
 #             break
-#     message = 'Unpair-data epoch %s blur PSNR: %.2f \n'%(epoch, t_fakeS_reblur_psnr/cnt)
-#     message += 'Unpair-data epoch %s deblur PSNR: %.2f \n'%(epoch, t_s_psnr/cnt)
+#     message = 'UnPair-data epoch %s blur PSNR: %.2f \n'%(epoch, t_fakeS_reblur_psnr/cnt)
+#     message += 'UnPair-data epoch %s deblur PSNR: %.2f \n'%(epoch, t_s_psnr/cnt)
 #     print(message)
 #     print('using time %.3f'%(time.time()-start_time))
 #     log_name = os.path.join(config['checkpoints'],config['model_name'],'psnr_log.txt')   
@@ -184,22 +151,46 @@ def validation_pair(epoch):
 #         log.write(message)
 #     return (t_b_psnr/cnt,t_fakeS_reblur_psnr/cnt, t_s_psnr/cnt)
 
+def validation_unpair(epoch):
+    t_b_psnr = 0
+    t_s_psnr = 0
+    t_fakeS_reblur_psnr = 0
+    cnt = 0
+    start_time = time.time()
+    print('--------validation begin----------')
+    for index, batch_data in enumerate(val_dataloader_unpair):
+        model.set_input(batch_data)
+        reblur_S_psnr, reblur_fS_psnr, sharp_blur = model.test(validation=True)
+        t_b_psnr += reblur_S_psnr
+        t_fakeS_reblur_psnr += reblur_fS_psnr
+        t_s_psnr += sharp_blur
+        cnt += 1
+        if index > 100:
+            break
+    message = 'Unpair-data epoch %s blur PSNR: %.2f \n'%(epoch, t_fakeS_reblur_psnr/cnt)
+    message += 'Unpair-data epoch %s deblur PSNR: %.2f \n'%(epoch, t_s_psnr/cnt)
+    print(message)
+    print('using time %.3f'%(time.time()-start_time))
+    log_name = os.path.join(config['checkpoints'],config['model_name'],'psnr_log.txt')   
+    with open(log_name,'a') as log:
+        log.write(message)
+    return (t_b_psnr/cnt,t_fakeS_reblur_psnr/cnt, t_s_psnr/cnt)
+
 # training
 # val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr = validation_pair(config['start_epoch'])
-# writer.add_scalar('PairPSNR/deblur', val_deblur_psnr, config['start_epoch'])
-# writer.add_scalar('PairPSNR/reblur-S', val_reblur_S_psnr, config['start_epoch'])
-# writer.add_scalar('PairPSNR/reblur-fakeS', val_reblur_fS_psnr, config['start_epoch'])
+# writer.add_scalar('UnPairPSNR/deblur', val_deblur_psnr, config['start_epoch'])
+# writer.add_scalar('UnPairPSNR/reblur-S', val_reblur_S_psnr, config['start_epoch'])
+# writer.add_scalar('UnPairPSNR/reblur-fakeS', val_reblur_fS_psnr, config['start_epoch'])
 
 best_psnr = 0.0
 for epoch in range(config['start_epoch'], config['epoch']):
     epoch_start_time = time.time()
-    step_per_epoch = len(train_dataloader)
+    step_per_epoch = len(train_dataloader_unpair)
     # for step, (batch_data1, batch_data2) in enumerate(zip(train_dataloader_gt,train_dataloader_unpair)):
     G_iter = 0
     D_iter = 0
-    for step, batch_data in enumerate(train_dataloader):
+    for step, batch_data in enumerate(train_dataloader_unpair):
         p = float(step + epoch * step_per_epoch) / config['epoch'] / step_per_epoch
-        alpha = 2. / (1. + np.exp(-10 * p)) - 1
         # # training step 2
         time_step1 = time.time()
 
@@ -226,20 +217,20 @@ for epoch in range(config['start_epoch'], config['epoch']):
 
     if epoch%config['save_epoch'] == 0:
         model.save(epoch)
-    paired_results, bmap_vis = model.get_tensorboard_images()
-    writer.add_image('Pair/real_B', paired_results['real_B'],epoch)
-    writer.add_image('Pair/real_S', paired_results['real_S'],epoch)
-    writer.add_image('Pair/fake_S', paired_results['fake_S'],epoch)
-    writer.add_image('Pair/fake_B', paired_results['fake_B'],epoch)
-    writer.add_image('Pair/B_S_offset', bmap_vis['real_B'],epoch)
-    writer.add_image('Pair/real_S_offset', bmap_vis['real_S'],epoch)
-    writer.add_image('Pair/B_fS_offset', bmap_vis['fake_S'],epoch)
+    unpair_results, bmap_vis = model.get_tensorboard_images()
+    writer.add_image('UnPair/real_B', unpair_results['real_B'],epoch)
+    writer.add_image('UnPair/real_S', unpair_results['real_S'],epoch)
+    writer.add_image('UnPair/fake_S', unpair_results['fake_S'],epoch)
+    writer.add_image('UnPair/fake_B', unpair_results['fake_B'],epoch)
+    writer.add_image('UnPair/B_S_offset', bmap_vis['real_B'],epoch)
+    writer.add_image('UnPair/real_S_offset', bmap_vis['real_S'],epoch)
+    writer.add_image('UnPair/B_fS_offset', bmap_vis['fake_S'],epoch)
 
     if epoch%config['val_freq'] == 0:
-        val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr  = validation_pair(epoch)
-        writer.add_scalar('PairPSNR/deblur', val_deblur_psnr, epoch)
-        writer.add_scalar('PairPSNR/reblur-S', val_reblur_S_psnr, epoch)
-        writer.add_scalar('PairPSNR/reblur-fakeS', val_reblur_fS_psnr, epoch)
+        val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr  = validation_unpair(epoch)
+        writer.add_scalar('UnPairPSNR/deblur', val_deblur_psnr, epoch)
+        writer.add_scalar('UnPairPSNR/reblur-S', val_reblur_S_psnr, epoch)
+        writer.add_scalar('UnPairPSNR/reblur-fakeS', val_reblur_fS_psnr, epoch)
 
         if val_deblur_psnr > best_psnr:
             best_psnr = val_deblur_psnr

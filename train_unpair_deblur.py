@@ -61,6 +61,8 @@ if config['dataset_mode'] == 'pair':
     val_dataloader = DataLoader(val_dataset,
                                     batch_size=config['val']['val_batch_size'],
                                     shuffle = True)
+    print("train_dataset:",train_dataset)
+    print("val_dataset",val_dataset)                            
 elif config['dataset_mode'] == 'unpair':
     train_dataset_unpair = dataloader_unpair.BlurryVideo(config, train= True)
     train_dataloader_unpair = DataLoader(train_dataset_unpair,
@@ -71,10 +73,11 @@ elif config['dataset_mode'] == 'unpair':
     val_dataloader_unpair = DataLoader(val_dataset_unpair,
                                     batch_size=config['val']['val_batch_size'],
                                     shuffle = True)
+    print("train_dataset:",train_dataset_unpair)
+    print("val_dataset",val_dataset_unpair)
 else:
     raise ValueError("dataset_mode [%s] not recognized." % config['dataset_mode'])
-print("train_dataset:",train_dataset)
-print("val_dataset",val_dataset)
+
 ###Create transform to display image from tensor
 
 

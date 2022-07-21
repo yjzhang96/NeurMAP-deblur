@@ -13,7 +13,6 @@ import numpy as np
 
 from torch.utils.data import DataLoader
 from data import dataloader_pair
-from data import dataloader_align_new
 from data import dataloader_unpair
 
 

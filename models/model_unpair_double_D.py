@@ -5,7 +5,7 @@ import torch.optim as optim
 import torch.autograd as autograd
 import os
 import torch.nn.functional as F
-from . import networks_new
+from . import networks
 from collections import OrderedDict
 from utils import utils_new as utils
 from .losses import get_loss, SSIMLoss
@@ -13,7 +13,6 @@ from .schedulers import WarmRestart,LinearDecay
 from utils.image_pool import ImagePool
 
 
-networks = networks_new
 
 class DeblurNet():
     def __init__(self, config):

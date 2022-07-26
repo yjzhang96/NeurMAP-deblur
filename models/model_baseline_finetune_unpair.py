@@ -8,7 +8,7 @@ import os
 import torch.nn.functional as F
 from . import networks
 from collections import OrderedDict
-from utils import utils_new as utils
+from utils import utils
 from .losses import get_loss, SSIMLoss
 from .schedulers import WarmRestart,LinearDecay
 from utils.image_pool import ImagePool
@@ -215,13 +215,12 @@ class DeblurNet():
         # loss_MSE_S = self.MSE(self.fake_B_from_S,self.real_B[:B//2])
 
         # SSIM loss
-        lambda_SSIM = 0.1
-        ssim_loss_fS = 1 - self.SSIMloss.get_loss(self.fake_B_from_fS,self.real_B)
+        # lambda_SSIM = 0.1
+        # ssim_loss_fS = 1 - self.SSIMloss.get_loss(self.fake_B_from_fS,self.real_B)
         # ssim_loss_S = 1 - self.SSIMloss.get_loss(self.fake_B_from_S,self.real_B[:B//2])
 
-        loss_reblur = lambda_SSIM * ssim_loss_fS + lambda_d_reblur * loss_MSE_fS \
-                            + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
-
+        loss_reblur =  lambda_d_reblur * loss_MSE_fS 
+                            # + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
 
         self.loss_total = self.loss_adv_D   + loss_reblur + self.loss_Mag_gt
         # import ipdb; ipdb.set_trace()

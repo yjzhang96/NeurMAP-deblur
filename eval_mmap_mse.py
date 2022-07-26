@@ -22,7 +22,7 @@ from models import model_semi_double_cGAN
 from models import model_unpair_double_D
 from models import model_semi_double_D
 from models import model_semi_double_D_GDaddB_finetune
-from utils import utils_new as utils
+from utils import utils
 
             
 parser = argparse.ArgumentParser()

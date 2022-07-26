@@ -19,7 +19,7 @@ from data import dataloader_unpair
 from models import model_baseline_finetune_diff, model_semi_double_D_GDaddB_finetune
 from models import model_baseline_finetune, model_baseline_finetune_unpair
 
-from utils import utils_new as utils
+from utils import utils
 from tensorboardX import SummaryWriter
 torch.manual_seed(0)
 

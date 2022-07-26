@@ -1,7 +1,7 @@
 import scipy.io as sio 
 import os
 import cv2
-import utils.utils_new as utils
+from utils import utils
 from glob import glob 
 import numpy as np 
 

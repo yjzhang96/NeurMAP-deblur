@@ -12,15 +12,14 @@ import torch.nn as nn
 import torch.nn.functional as F 
 from torch.utils.data import DataLoader
 from data import dataloader_pair
-from data import dataloader_align_new
 from data import dataloader_unpair
 from shutil import rmtree
 
 # from models import model_reblur_gan_lr
 from models import model_unpair_double_D
 from models import model_semi_double_D_GDaddB_finetune
-from utils import utils_new as utils
-from models import model_MPRnet_finetune,model_baseline_finetune_diff
+from utils import utils
+from models import model_baseline_finetune, model_baseline_finetune_unpair
 from models import model_semi_double_D_GOPRO
             
 parser = argparse.ArgumentParser()
@@ -47,7 +46,7 @@ for key,value in config.items():
 # import ipdb; ipdb.set_trace()
 test_config = config['test']
 if not os.path.exists(test_config['result_dir']):
-    os.mkdir(test_config['result_dir'])
+    os.makedirs(test_config['result_dir'],exist_ok=True)
 if test_config['save_dir']:
     image_save_dir = os.path.join(test_config['result_dir'],test_config['save_dir']) 
 else:
@@ -60,16 +59,15 @@ if not os.path.exists(image_save_dir):
 ### initialize model
 
 
-if config['model_class'] == "double_D":
-    Model = model_unpair_double_D
-elif config['model_class'] == "Semi_doubleD_addB_finetune":
+
+if config['model_class'] == "Semi_doubleD_addB_finetune":
     Model = model_semi_double_D_GDaddB_finetune
-if config['model_class'] == "GOPRO_deblur":
+elif config['model_class'] == "GOPRO_deblur":
     Model = model_semi_double_D_GOPRO
-elif config['model_class'] == "MPRnet_finetune":
-    Model = model_MPRnet_finetune
-elif config['model_class'] == "Diff_GT":
-    Model = model_baseline_finetune_diff
+elif config['model_class'] == "Baseline_finetune":
+    Model = model_baseline_finetune
+elif config['model_class'] == "baseline_finetune_unpair":
+    Model = model_baseline_finetune_unpair
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
 

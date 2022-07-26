@@ -8,7 +8,7 @@ import os
 import torch.nn.functional as F
 from . import networks
 from collections import OrderedDict
-from utils import utils_new as utils
+from utils import utils
 from .losses import get_loss, SSIMLoss
 from .schedulers import WarmRestart,LinearDecay
 from utils.image_pool import ImagePool

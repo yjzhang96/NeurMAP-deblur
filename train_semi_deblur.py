@@ -17,7 +17,7 @@ from data import dataloader_unpair
 
 
 from models import model_baseline_finetune_diff, model_semi_double_D_GDaddB_finetune
-from models import model_baseline_finetune, model_baseline_finetune_unpair
+from models import model_baseline_finetune, model_baseline_finetune_unpair, model_baseline_finetune_quad
 
 from utils import utils
 from tensorboardX import SummaryWriter
@@ -29,8 +29,7 @@ args = parser.parse_args()
 
 with open(args.config_file,'r') as f:
     config = yaml.load(f)
-    for key,value in config.items():
-        print('%s:%s'%(key,value))
+    utils.print_config(config) 
 ### make saving dir
 
 if not os.path.exists(config['checkpoints']):
@@ -53,6 +52,9 @@ if config['model_class'] == "Semi_doubleD_addB_finetune":
 elif config['model_class'] == "baseline_finetune":
     Model = model_baseline_finetune
     os.system('cp %s %s'%('models/model_baseline_finetune.py', model_save_dir))
+elif config['model_class'] == "Baseline_finetune_quad":
+    Model = model_baseline_finetune_quad
+    os.system('cp %s %s'%('models/model_baseline_finetune_quad.py', model_save_dir))
 elif config['model_class'] == "Diff_GT":
     Model = model_baseline_finetune_diff
     os.system('cp %s %s'%('models/model_baseline_finetune_diff.py', model_save_dir))

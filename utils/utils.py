@@ -15,8 +15,6 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-
-
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
 def tensor2im(image_tensor, imtype=np.uint8):
@@ -112,6 +110,13 @@ def mmap2heat(mmap_gpu):
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     return rgb
 
+def print_config(config):
+    for key,value in config.items():
+        if isinstance(value, dict):
+            print('\n {:s}:'.format(key))
+            print_config(value)
+        else:
+            print('%s:%s'%(key,value))
 
 def parse(parser):
 

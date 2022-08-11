@@ -1,12 +1,12 @@
 ---
 dataset_mode: mix
 
-checkpoints: './checkpoints/tensorboard-MPRnet'
-model_name: &MODEL_NAME MPRnet_GfS2_Itv10
+checkpoints: './checkpoints/Quad_deblur'
+model_name: &MODEL_NAME DMPHN_quad
 bmap_model: './checkpoints/reblur_gopro_exp2/D_net_latest.pth'
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
-model_class: MPRnet_finetune 
+model_class: Baseline_finetune_quad
 resume_train: False 
 which_epoch: latest
 start_epoch: 0
@@ -21,7 +21,7 @@ output_nc: 3
 init_type: xavier
 init_gain: 0.02
 epoch: 200
-batch_size: 2
+batch_size: 8
 is_training: true
 iteration_G: 1
 load_only_G: false
@@ -29,12 +29,12 @@ load_only_G: false
 train:
   blur_videos1: /home/yjz/hdd/deblur_datasets/Gopro_1080p/train/**/blur/*.png
   deblur_videos1: /home/yjz/hdd/deblur_datasets/Gopro_1080p/train/**/sharp/*.png
-  blur_videos2: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*blurryimg.png
-  deblur_videos2: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*gtimg.png
-  real_blur_videos: /home/yjz/datasets/S10_finetune_set/blur/*/*.png
-  sharp_videos: /home/yjz/datasets/S10_finetune_set/sharp/*/*.png
-  real_blur_videos2: /home/yjz/datasets/S10_blur_set/train/blur/*/*.png
-  sharp_videos2: /home/yjz/datasets/S10_blur_set/train/sharp/*/*.png
+  blur_videos2: 
+  deblur_videos2: 
+  real_blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao_quad_small/*blurryimg.png
+  sharp_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/train_sharp/*gtimg.png 
+  real_blur_videos2: 
+  sharp_videos2: 
   lr_D: 0.0001
   lr_G: 0.00005
   lr_M: 0.0001
@@ -64,28 +64,29 @@ train:
 val:
   val_batch_size: 1
   verbose: False
-  blur_videos: /home/yjz/datasets/Gopro_1080p/test/**/blur/*.png
-  deblur_videos: /home/yjz/datasets/Gopro_1080p/test/**/sharp/*.png
-  real_blur_videos: /home/yjz/datasets/S10_blur_set/Real_test/*/*.png
-  sharp_videos: /home/yjz/datasets/S10_blur_set/Real_test/*/*.png
+  blur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/blur/*.png
+  deblur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/sharp/*.png
+  real_blur_videos: /hdd/deblur_datasets/Synthetic_blur/Gao_quad_test/*blurryimg.png
+  sharp_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
 
 model:
-  g_name: MPRnet
+  g_name: DMPHN
   d_name: Offset
   use_sigmoid: 0
+  offset_mode: quad
   norm: 
 
 test:
-  result_dir: ./exp_results/
+  result_dir: ./exp_results/Quad_deblur/
   save_dir: *MODEL_NAME
   which_epoch: latest
-  verbose: True
+  verbose: False
   test_batch_size: 1
-  dataset_mode: unpair
-  blur_videos: /home/yjz/datasets/Gopro_1080p/train/**/blur/*.png
-  deblur_videos: /home/yjz/datasets/Gopro_1080p/train/**/sharp/*.png
-  real_blur_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png
-  sharp_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
+  dataset_mode: pair
+  blur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/blur/*.png
+  deblur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/sharp/*.png
+  real_blur_videos: /hdd/deblur_datasets/S10_finetune_set/Real_test/*/*.png
+  sharp_videos: /hdd/deblur_datasets/S10_finetune_set/Real_test/*/*.png 
 
 
 

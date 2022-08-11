@@ -41,10 +41,12 @@ def write_txt(file_name, line):
 def metrics_name():
     print("-----calculate metrics for result: %s ---------"%args.res_root)
     for root, dirs, files in os.walk(args.res_root):
-        continue
+        dir_in_rootpath = dirs
+        print(root,'\n', dirs,'\n', files)
+        break
     if not args.ref_root:
         args.ref_root=args.res_root
-    if len(dirs) > 0:
+    if len(dir_in_rootpath) > 0:
         multiple_video = True
     else:
         multiple_video = False
@@ -128,8 +130,8 @@ def metrics_name():
         print(ref_path,res_path)
         gt_files = os.listdir(ref_path)
         res_files = os.listdir(res_path)
-        gt_files = [i for i in gt_files if i.endswith('real_S.png')]
-        res_files = [i for i in res_files if i.endswith('fake_S.png')]
+        gt_files = [i for i in gt_files if i.endswith('.png')]
+        res_files = [i for i in res_files if i.endswith('.png')]
 
         print("total %d images in directory %s"%(len(res_files),res_path))
         gt_files = sorted(gt_files)
@@ -141,7 +143,7 @@ def metrics_name():
         ssim_video = 0
         lpips_video = 0
         for i in range(len(res_files)):
-            if '006_blurryimg' in gt_files[i]:
+            if '006_blurryimg' in res_files[i]:
                 continue
             
             imname = os.path.join(ref_path,gt_files[i])
@@ -155,9 +157,9 @@ def metrics_name():
             print(img1.shape,img2.shape)
             # img1 = resize(img1, (img2.shape[0], img2.shape[1]))
             
-            # H,W,_ = img1.shape
+            H,W,_ = img1.shape
             # img2 = img2[:H,:W]
-            # img2_resized = resize(img2, (img1.shape[0],img1.shape[1]))
+            img2 = resize(img2, (img1.shape[0],img1.shape[1]))
             per_ssim = ssim(img1,img2)
             ssim_video += per_ssim
             per_psnr = psnr(img1,img2)

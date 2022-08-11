@@ -103,7 +103,7 @@ def define_net_D(config):
         model_d = UNetDiscriminator(inChannels=3, outChannels=2,use_sigmoid=config['model']['use_sigmoid'])
     
     elif discriminator_name == 'Offset':
-        model_d = OffsetNet(input_nc=3,nf=16,output_nc=2)
+        model_d = OffsetNet(input_nc=3,nf=16,output_nc=2,offset_method=config['model']['offset_mode'])
     
     else:
         raise ValueError("discriminator Network [%s] not recognized." % discriminator_name)
@@ -119,13 +119,13 @@ def define_global_D(config, input_nc=3, ndf=64, n_layers_D=3, norm='instance', u
     return netD
 
 
-def define_blur(input_nc=3, output_nc=3, n_offset=1,gpu_ids=[]):
+def define_blur(input_nc=3, output_nc=3, offset_num=15,gpu_ids=[]):
     net_blur = None
     use_gpu = len(gpu_ids) > 0
 
     if use_gpu:
         assert (torch.cuda.is_available())
-    net_blur = BlurNet()
+    net_blur = BlurNet(offsets_num=offset_num)
 
     net_blur = init_net(net_blur, gpu_ids=gpu_ids,initialize_weights=False)
     return net_blur
@@ -198,8 +198,8 @@ class BlurNet(nn.Module):
             fake_B_n[:,i*3:(i+1)*3,:,:] = self.Dcn(fake_S,offset_i,mask)
         
         # fake_B = fake_B_n/self.offsets_num
-        fake_B_n = fake_B_n.view(B,15,-1,H,W)
-        fake_B = torch.sum(fake_B_n,dim=1)/15
+        fake_B_n = fake_B_n.view(B,self.offsets_num,-1,H,W)
+        fake_B = torch.sum(fake_B_n,dim=1)/self.offsets_num
         
         return fake_B, offsets
 

@@ -19,7 +19,7 @@ from shutil import rmtree
 from models import model_unpair_double_D
 from models import model_semi_double_D_GDaddB_finetune
 from utils import utils
-from models import model_baseline_finetune, model_baseline_finetune_unpair
+from models import model_baseline_finetune, model_baseline_finetune_quad, model_baseline_finetune_unpair
 from models import model_semi_double_D_GOPRO
             
 parser = argparse.ArgumentParser()
@@ -39,9 +39,8 @@ with open(config.config_file,'r') as f:
     config['which_epoch'] = config['test']['which_epoch']
     if config['test']['verbose']:
         config['load_only_G'] = False
+    utils.print_config(config)
 
-for key,value in config.items():
-    print('%s:%s'%(key,value))
 ### make saving dir
 # import ipdb; ipdb.set_trace()
 test_config = config['test']
@@ -66,7 +65,9 @@ elif config['model_class'] == "GOPRO_deblur":
     Model = model_semi_double_D_GOPRO
 elif config['model_class'] == "Baseline_finetune":
     Model = model_baseline_finetune
-elif config['model_class'] == "baseline_finetune_unpair":
+elif config['model_class'] == "Baseline_finetune_quad":
+    Model = model_baseline_finetune_quad
+elif config['model_class'] == "Baseline_finetune_unpair":
     Model = model_baseline_finetune_unpair
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
@@ -114,7 +115,8 @@ for index, batch_data in enumerate(test_dataloader):
         
     start_time_i = time.time()
     model.set_input(batch_data)
-    psnr = model.test(validation=True)
+    # psnr = model.test(validation=True)
+    psnr = model.test_multi_inf(batch_data)
     
     results = model.get_current_visuals()
     image_path = model.get_image_path()

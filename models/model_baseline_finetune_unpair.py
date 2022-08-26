@@ -15,7 +15,10 @@ from utils.image_pool import ImagePool
 from ipdb import set_trace as stc
 import copy
 
-
+# calculate PSNR
+def PSNR(img1, img2):
+    MSE = F.mse_loss(img1,img2)
+    return 10 * np.log10(1 / MSE.item())
 class DeblurNet():
     def __init__(self, config):
         self.config = config
@@ -30,7 +33,7 @@ class DeblurNet():
         self.n_offset = 15
         self.net_D = networks.define_net_D(config)
         self.net_naturalD = networks.define_global_D(config)
-        self.blur_net = networks.define_blur(input_nc=3, output_nc=3, n_offset=self.n_offset, gpu_ids=config['gpu'])      # deformable
+        self.blur_net = networks.define_blur(input_nc=3, output_nc=3, offset_num=self.n_offset, gpu_ids=config['gpu'])      # deformable
                 
         ###Loss and Optimizer
         self.criterion_adv = get_loss('blur-gan')
@@ -65,10 +68,16 @@ class DeblurNet():
                     self.net_G.module.load_state_dict(torch.load(load_G_model)['model'])
                 except:
                     self.net_G.load_state_dict(torch.load(load_G_model)['model'])
+            if config.get('MTR_model', None):
+                load_D_model = config['MTR_model']
+                try: 
+                    self.net_D.module.load_state_dict(torch.load(load_D_model))
+                except:
+                    self.net_D.load_state_dict(torch.load(load_D_model)) 
             ## init teacher net
             self.net_teacher = copy.deepcopy(self.net_G)
             print('--------load model %s success!-------'%load_G_model)
-            print('-------- tacher model created -------')
+            print('-------- teacher model created -------')
 
         if config['is_training']:
             self.optimizer_D = torch.optim.Adam( self.net_D.parameters(), lr=config['train']['lr_M'], betas=(0.9, 0.999) )
@@ -144,6 +153,15 @@ class DeblurNet():
         diff = vec1_abs - vec2_abs
         return diff
 
+    def offset_reg_loss(self,mmap):
+        tv_loss = self.L1loss(mmap[:,:,:,:-1],mmap[:,:,:,1:]) + \
+                        self.L1loss(mmap[:,:,:-1,:],mmap[:,:,1:,:])
+
+        # # regulationl loss
+        # lambda_reg = 0.0
+        reg_loss = torch.mean(mmap**2)
+        return tv_loss + 0.1 * reg_loss
+
     def update_D(self,warmup=False):
         # import ipdb; ipdb.set_trace()
         B,C,H,W = self.real_B.shape
@@ -191,7 +209,7 @@ class DeblurNet():
         if self.config['train']['relative_reblur']:
             mmap_rB_fS = mmap_real_B_norm - mmap_fake_S_norm
             self.fake_B_from_fS, offsets = self.blur_net(fake_S_detach, mmap_rB_fS)
-            # mmap_rB_rS = mmap_real_B_norm - mmap_real_S_norm.detach()
+            # mmap_rB_rS = mmap_real_B - mmap_real_S.detach()
             # self.fake_B_from_S , _ = self.blur_net(self.real_S[:B//2], mmap_rB_rS[:B//2])
         elif self.config['train']['absolute_reblur']:
             self.fake_B, offsets = self.blur_net(fake_S_detach, mmap_real_B_norm)
@@ -212,17 +230,15 @@ class DeblurNet():
         
         # MSE loloss
         loss_MSE_fS = self.MSE(self.fake_B_from_fS,self.real_B)
-        # loss_MSE_S = self.MSE(self.fake_B_from_S,self.real_B[:B//2])
 
         # SSIM loss
-        # lambda_SSIM = 0.1
-        # ssim_loss_fS = 1 - self.SSIMloss.get_loss(self.fake_B_from_fS,self.real_B)
-        # ssim_loss_S = 1 - self.SSIMloss.get_loss(self.fake_B_from_S,self.real_B[:B//2])
+        lambda_SSIM = 0.1
+        ssim_loss_fS = 1 - self.SSIMloss.get_loss(self.fake_B_from_fS,self.real_B)
 
-        loss_reblur =  lambda_d_reblur * loss_MSE_fS 
-                            # + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
+        self.loss_d_reblur =  lambda_d_reblur * loss_MSE_fS \
+                            + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
 
-        self.loss_total = self.loss_adv_D   + loss_reblur + self.loss_Mag_gt
+        self.loss_total = self.loss_adv_D   + self.loss_d_reblur 
         # import ipdb; ipdb.set_trace()
         self.optimizer_D.zero_grad()
         self.loss_total.backward()
@@ -307,10 +323,12 @@ class DeblurNet():
 
         # apply content loss to warm start net_G
         # apply teacher model to regularize content
-        with torch.no_grad():
-            fake_S_teacher = self.net_teacher(self.real_B) 
         if self.config['train']['lambda_G_teacher']>0:
+            with torch.no_grad():
+                fake_S_teacher = self.net_teacher(self.real_B) 
             self.loss_teach = self.L1loss(self.fake_S, fake_S_teacher.detach())
+        else:
+            self.loss_teach = torch.tensor([0.0]).cuda() 
         if self.config['train']['identical_loss']:
             real_S_idt = self.net_G(self.real_S)
             self.loss_idt = self.L1loss(self.real_S, real_S_idt)            
@@ -332,12 +350,12 @@ class DeblurNet():
                             ('D_sharp',self.loss_d_sharp.item()),
                             ('D_fake_sharp',self.loss_d_fake_sharp.item()),
                             ('D_blur',self.loss_d_blur.item()),
-                            ('loss_Mag_gt',self.loss_Mag_gt.item()),
+                            ('loss_D_reblur',self.loss_d_reblur.item()),
                             ('G_fS_S',self.loss_adv_G_fS.item()),
                             ('loss_global_G',self.loss_adv_globalG.item()),
                             ('loss_G_Itv',self.G_Itv_loss.item()),
                             # ('loss_adv_G',self.loss_adv_G.item()),
-                            ('loss_reblur',self.loss_reblur.item()),
+                            ('loss_G_reblur',self.loss_reblur.item()),
                             ('loss_teacher',self.loss_teach.item()),
                             ])
     
@@ -358,6 +376,7 @@ class DeblurNet():
             self.fake_B, _ = self.blur_net(self.real_S, mmap_B_S)
 
             mmap_fake_S = self.net_D(self.fake_S)
+            print(torch.abs(mmap_fake_S).max(), torch.abs(mmap_real_B).max(), torch.abs(mmap_real_S).max())
             mmap_B_fS = self.vec_diff(mmap_real_B,mmap_fake_S)
             self.fake_B_from_fS, _ = self.blur_net(self.fake_S, mmap_real_B)
             # self.fake_B = fakeB_from_fakeS
@@ -380,6 +399,40 @@ class DeblurNet():
             sharp_psnr += PSNR(self.real_S,self.fake_S) 
             reblur_fS_psnr += PSNR(self.real_B,self.fake_B_from_fS) 
             return (reblur_S_psnr,reblur_fS_psnr,sharp_psnr)
+            
+    def test_multi_inf(self, validation = False):
+        inference_num = self.config['test']['inference_num']
+        self.optimizer_D = torch.optim.Adam( self.net_D.parameters(), lr=self.config['train']['lr_M'], betas=(0.9, 0.999) )
+        self.optimizer_G = torch.optim.Adam( self.net_G.parameters(), lr=self.config['train']['lr_G'], betas=(0.9, 0.999) )
+        self.net_D.train()
+        self.net_G.train()
+        best_psnr = 0
+        for i in range(inference_num):
+            self.fake_S = self.net_G(self.real_B)
+            # with torch.no_grad(): 
+            #     mmap_real_B = self.net_D(self.real_B)
+            #     mmap_real_S = self.net_D(self.real_S)
+            #     if self.config['train']['relative_reblur']:
+            #         mmap_B_S = self.vec_diff(mmap_real_B, mmap_real_S)
+            #     else:
+            #         mmap_B_S = mmap_real_B
+            #     self.fake_B, _ = self.blur_net(self.real_S, mmap_B_S)
+
+            #     mmap_fake_S = self.net_D(self.fake_S)
+            #     mmap_B_fS = self.vec_diff(mmap_real_B,mmap_fake_S)
+            #     self.fake_B_from_fS, _ = self.blur_net(self.fake_S, mmap_real_B)
+                    
+            print('PSNR on step %d:'%i, sharp_psnr)
+            if sharp_psnr > best_psnr:
+                best_psnr = sharp_psnr
+                best_pic = self.fake_S
+            self.update_D()
+            self.update_G()
+            reblur_S_psnr = PSNR(self.real_B,self.fake_B) 
+            sharp_psnr = PSNR(self.real_S,self.fake_S) 
+            reblur_fS_psnr = PSNR(self.real_B,self.fake_B_from_fS) 
+        self.fake_S = best_pic
+        return (reblur_S_psnr,reblur_fS_psnr,best_psnr)
 
     def save(self,epoch):
         save_d_filename = 'D_net_%s.pth'%epoch

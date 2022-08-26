@@ -422,14 +422,14 @@ class DeblurNet():
             #     mmap_B_fS = self.vec_diff(mmap_real_B,mmap_fake_S)
             #     self.fake_B_from_fS, _ = self.blur_net(self.fake_S, mmap_real_B)
                     
-            if sharp_psnr > best_psnr:
-                best_psnr = sharp_psnr
-                best_pic = self.fake_S
             self.update_D()
             self.update_G()
             reblur_S_psnr = PSNR(self.real_B,self.fake_B) 
             sharp_psnr = PSNR(self.real_S,self.fake_S) 
             print('PSNR on step %d:'%i, sharp_psnr)
+            if sharp_psnr > best_psnr:
+                best_psnr = sharp_psnr
+                best_pic = self.fake_S
             reblur_fS_psnr = PSNR(self.real_B,self.fake_B_from_fS) 
         self.fake_S = best_pic
         return (reblur_S_psnr,reblur_fS_psnr,best_psnr)

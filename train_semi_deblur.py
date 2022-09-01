@@ -49,7 +49,7 @@ os.system('cp %s %s'%(args.config_file, model_save_dir))
 if config['model_class'] == "Semi_doubleD_addB_finetune":
     Model = model_semi_double_D_GDaddB_finetune
     os.system('cp %s %s'%('models/model_semi_double_D_GDaddB_finetune.py', model_save_dir))
-elif config['model_class'] == "baseline_finetune":
+elif config['model_class'] == "Baseline_finetune":
     Model = model_baseline_finetune
     os.system('cp %s %s'%('models/model_baseline_finetune.py', model_save_dir))
 elif config['model_class'] == "Baseline_finetune_quad":

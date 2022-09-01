@@ -30,7 +30,7 @@ class DeblurNet():
         self.net_D = networks.define_net_D(config)
         self.net_globalD = networks.define_global_D(config)
         # self.net_mmap_pretrain = networks.define_net_offset(config)
-        self.blur_net = networks.define_blur(input_nc=3, output_nc=3, n_offset=self.n_offset, gpu_ids=config['gpu'])      # deformable
+        self.blur_net = networks.define_blur(input_nc=3, output_nc=3, offset_num=self.n_offset, gpu_ids=config['gpu'])      # deformable
         # self.blur_net_layer = networks.define_blur_layer(input_nc=3, output_nc=3, n_offset=self.n_offset, gpu_ids=config['gpu'])      # deformable
                 
         ###Loss and Optimizer
@@ -356,7 +356,7 @@ class DeblurNet():
 
             mmap_fake_S = self.net_D(self.fake_S)
             mmap_B_fS = self.vec_diff(mmap_real_B,mmap_fake_S)
-            self.fake_B_from_fS, _ = self.blur_net(self.fake_S, mmap_real_B)
+            self.fake_B_from_fS, _ = self.blur_net(self.fake_S, mmap_B_fS)
             # self.fake_B = fakeB_from_fakeS
 
             # import ipdb; ipdb.set_trace()

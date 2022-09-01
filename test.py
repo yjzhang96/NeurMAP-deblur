@@ -115,8 +115,10 @@ for index, batch_data in enumerate(test_dataloader):
         
     start_time_i = time.time()
     model.set_input(batch_data)
-    # psnr = model.test(validation=True)
-    psnr = model.test_multi_inf(batch_data)
+    if config['test'].get('inference_num', None):
+        psnr = model.test_multi_inf(batch_data)
+    else:
+        psnr = model.test(validation=True)
     
     results = model.get_current_visuals()
     image_path = model.get_image_path()
@@ -152,11 +154,11 @@ for index, batch_data in enumerate(test_dataloader):
         utils.save_heat_mmap(mmap_real_B, save_path)
 
         save_path = os.path.join(video_dir,"%s_Reblur_map.png"%(frame_index_B))
-        reblur_map = mmap_real_B - mmap_fake_S
+        reblur_map = model.vec_diff(mmap_real_B, mmap_fake_S)
         utils.save_heat_mmap(reblur_map, save_path)
 
     reblur_S_psnr, reblur_fS_psnr, sharp_blur = psnr
-    print('[time:%.3f]processing %s PSNR: %.2f'%(time.time()-start_time_i, image_path['B_path'],sharp_blur))
+    print('[time:%.3f]processing %s PSNR: %.2f \t %.2f'%(time.time()-start_time_i, image_path['B_path'],reblur_S_psnr,reblur_fS_psnr))
     t_deblur_psnr += sharp_blur
     t_s_reblur_psnr += reblur_S_psnr
     t_fakeS_reblur_psnr += reblur_fS_psnr

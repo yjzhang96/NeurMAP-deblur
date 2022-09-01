@@ -177,7 +177,7 @@ class BlurNet(nn.Module):
         
         # blurmap to offsets
         if C == 2:
-            offset_SPoint = blurmap 
+            offset_SPoint = blurmap * 20 
             offset_EPoint = 0 - offset_SPoint
             offset_S_0, offset_0_E = self.linear_traj(offset_SPoint,offset_EPoint)
             zeros = torch.zeros(B,2,H,W).cuda()
@@ -283,7 +283,6 @@ class OffsetNet(nn.Module):
         self.uconv_3 = nn.ConvTranspose2d(nf*2, nf*2, kernel_size=4, stride=2, padding=1, 
                                         bias=use_bias)
         self.conv_out_0 = nn.Conv2d(nf*2,output_nc,kernel_size=5,stride=1,padding=2,bias=use_bias)
-        self.Sigmoid = nn.Sigmoid()
 
     def forward(self,input):     
         scale_0 = input

@@ -13,7 +13,7 @@ from .losses import get_loss, SSIMLoss
 from .schedulers import WarmRestart,LinearDecay
 from utils.image_pool import ImagePool
 from ipdb import set_trace as stc
-
+import copy
 
 class DeblurNet():
     def __init__(self, config):
@@ -133,7 +133,10 @@ class DeblurNet():
             y_norm = torch.where(y<0,-y,y)
             vec_norm = torch.cat((x_norm,y_norm),dim=1)
         elif C == 4:
-            vec_norm = vec
+            vec_norm = vec.clone()
+            # vec_norm[:,2:] = -vec_norm[:,2:]
+            print('motion offset has 4 channels')
+            vec_norm = torch.cat([torch.abs(vec_norm[:,:2]),-torch.abs(vec_norm[:,2:])],dim=1)
         return vec_norm
 
     
@@ -156,36 +159,10 @@ class DeblurNet():
         mmap_real_S = self.net_D(self.real_S)
         fake_S_detach = self.fake_S.detach()
         mmap_fake_S = self.net_D(fake_S_detach)
-        
         mmap_real_B_norm = self.vec_norm(mmap_real_B)
         mmap_real_S_norm = self.vec_norm(mmap_real_S)
         mmap_fake_S_norm = self.vec_norm(mmap_fake_S)
-        self.mmaps = {'real_B':mmap_real_B_norm,'fake_S':mmap_fake_S_norm,'real_S':mmap_real_S_norm}
 
-        one_tensor = torch.ones_like(mmap_real_B).cuda()
-        zero_tensor = torch.zeros_like(mmap_real_B).cuda()
-        # add image pool
-        self.real_pool.add(mmap_real_S_norm)
-        
-        ## offset to 0/1
-        self.loss_d_sharp = self.L1loss(mmap_real_S_norm, zero_tensor)
-        mmap_real_B_norm_detach = mmap_real_B_norm.detach()
-        self.loss_d_fake_sharp = self.L1loss(mmap_fake_S_norm, mmap_real_B_norm_detach)
-        ## motion map B as large as possible (upper limit)
-        self.loss_d_blur = self.L1loss(torch.abs(mmap_real_B_norm), one_tensor)
-        ## motion map B as large as possible (no upper limit)
-        # self.loss_d_blur = - self.L1loss(torch.abs(mmap_real_B_norm), zero_tensor)
-        self.loss_adv_D  = lambda_d_S * self.loss_d_sharp \
-                                + lambda_d_fS * self.loss_d_fake_sharp + lambda_d_B * self.loss_d_blur
-        
-        # loss Map_fS is smaller than Map_B
-        Mag_fake_S = torch.sqrt(mmap_fake_S_norm[:,0,:,:]**2 + mmap_fake_S_norm[:,1,:,:]**2)
-        Mag_real_B = torch.sqrt(mmap_real_B_norm[:,0,:,:]**2 + mmap_real_B_norm[:,1,:,:]**2)
-        Mag_diff = Mag_fake_S - Mag_real_B
-        Mag_gt = torch.where(Mag_diff>0, Mag_diff, torch.zeros_like(Mag_diff))
-        self.loss_Mag_gt = torch.mean(Mag_gt)        
-        
-        
         # reblur loss       
         if self.config['train']['relative_reblur']:
             mmap_rB_fS = mmap_real_B_norm - mmap_fake_S_norm
@@ -222,6 +199,32 @@ class DeblurNet():
                             + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
 
 
+
+        self.mmaps = {'real_B':mmap_real_B_norm,'fake_S':mmap_fake_S_norm,'real_S':mmap_real_S_norm}
+
+        one_tensor = torch.ones_like(mmap_real_B).cuda()
+        zero_tensor = torch.zeros_like(mmap_real_B).cuda()
+        # add image pool
+        self.real_pool.add(mmap_real_S_norm)
+        
+        ## offset to 0/1
+        self.loss_d_sharp = self.L1loss(mmap_real_S_norm, zero_tensor)
+        mmap_real_B_norm_detach = mmap_real_B_norm.detach()
+        self.loss_d_fake_sharp = self.L1loss(mmap_fake_S_norm, mmap_real_B_norm_detach)
+        ## motion map B as large as possible (upper limit)
+        self.loss_d_blur = self.L1loss(mmap_real_B_norm, one_tensor)
+        ## motion map B as large as possible (no upper limit)
+        # self.loss_d_blur = - self.L1loss(torch.abs(mmap_real_B_norm), zero_tensor)
+        self.loss_adv_D  = lambda_d_S * self.loss_d_sharp \
+                                + lambda_d_fS * self.loss_d_fake_sharp + lambda_d_B * self.loss_d_blur
+        
+        # loss Map_fS is smaller than Map_B
+        Mag_fake_S = torch.sqrt(mmap_fake_S_norm[:,0,:,:]**2 + mmap_fake_S_norm[:,1,:,:]**2)
+        Mag_real_B = torch.sqrt(mmap_real_B_norm[:,0,:,:]**2 + mmap_real_B_norm[:,1,:,:]**2)
+        Mag_diff = Mag_fake_S - Mag_real_B
+        Mag_gt = torch.where(Mag_diff>0, Mag_diff, torch.zeros_like(Mag_diff))
+        self.loss_Mag_gt = torch.mean(Mag_gt)        
+        
         self.loss_total = self.loss_adv_D   + loss_reblur + self.loss_Mag_gt
         # import ipdb; ipdb.set_trace()
         self.optimizer_D.zero_grad()
@@ -266,10 +269,24 @@ class DeblurNet():
 
         mmap_fake_S = self.net_D(self.fake_S)
         mmap_real_B = self.net_D(self.real_B)
+        
         mmap_fake_S_norm = self.vec_norm(mmap_fake_S)
+        
+        # reblur loss to train G
+        if self.config['train']['relative_reblur']:
+            # import ipdb; ipdb.set_trace()
+            mmap_real_B_norm = self.vec_norm(mmap_real_B)
+            reblur_mmap = mmap_real_B_norm[half_B:] - mmap_fake_S_norm[half_B:]
+        elif self.config['train']['absolute_reblur']:
+            reblur_mmap = mmap_real_B
+        reblur_mmap_detach = reblur_mmap.detach()
+        self.fake_B, _ = self.blur_net(self.fake_S[half_B:], reblur_mmap_detach)
+        self.loss_reblur = self.criterion_reblur(self.real_B[half_B:], self.fake_B)
+        
         ### G_fs to zero
+        # mmap_fake_S_norm = self.vec_norm(mmap_fake_S)
         zero_tensor = torch.zeros_like(mmap_real_B).cuda()
-        self.loss_adv_G_fS =  self.L1loss(torch.abs(mmap_fake_S_norm[B//2:]), zero_tensor[B//2:])
+        self.loss_adv_G_fS =  self.L1loss(mmap_fake_S_norm[B//2:], zero_tensor[B//2:])
         ### G_fs to mean(real_S)  ##relativistic loss
         # real_pool_query = torch.abs(self.real_pool.query())
         # real_pool_mean = torch.mean(real_pool_query,(0,2,3))
@@ -295,17 +312,7 @@ class DeblurNet():
         else:
             self.loss_adv_globalG = torch.tensor(0.0)
 
-        # reblur loss to train G
-        if self.config['train']['relative_reblur']:
-            # import ipdb; ipdb.set_trace()
-            mmap_real_B_norm = self.vec_norm(mmap_real_B)
-            reblur_mmap = mmap_real_B_norm[half_B:] - mmap_fake_S_norm[half_B:]
-        elif self.config['train']['absolute_reblur']:
-            reblur_mmap = mmap_real_B
-        reblur_mmap_detach = reblur_mmap.detach()
-        self.fake_B, _ = self.blur_net(self.fake_S[half_B:], reblur_mmap_detach)
-        self.loss_reblur = self.criterion_reblur(self.real_B[half_B:], self.fake_B)
-
+        
         # apply content loss to warm start net_G
         self.loss_content = self.L1loss(self.real_S[:half_B], self.fake_S[:half_B])            
         if self.config['train']['identical_loss']:
@@ -356,7 +363,7 @@ class DeblurNet():
 
             mmap_fake_S = self.net_D(self.fake_S)
             mmap_B_fS = self.vec_diff(mmap_real_B,mmap_fake_S)
-            self.fake_B_from_fS, _ = self.blur_net(self.fake_S, mmap_real_B)
+            self.fake_B_from_fS, _ = self.blur_net(self.fake_S, mmap_B_fS)
             # self.fake_B = fakeB_from_fakeS
 
             # import ipdb; ipdb.set_trace()

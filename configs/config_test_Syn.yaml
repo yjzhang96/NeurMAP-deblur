@@ -1,9 +1,9 @@
 ---
 dataset_mode: pair
 
-checkpoints: './checkpoints/Best_choice'
-model_name: &MODEL_NAME SemiSyn_small_pretrainGopro
-model_class: MPRnet_finetune
+checkpoints: './checkpoints/Quad_deblur'
+model_name: &MODEL_NAME DMPHN_lin_baseline
+model_class: Baseline_finetune
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
 resume_train: False
@@ -26,51 +26,23 @@ iteration_G: 1
 load_only_G: false
 
 train:
-  blur_videos: /home/yjz/datasets/Gopro_1080p/train/**/blur/*.png
-  deblur_videos: /home/yjz/datasets/Gopro_1080p/train/**/sharp/*.png
-  sharp_videos: /home/yjz/datasets/Gopro_1080p/train/**/sharp/*.png
-  real_blur_videos: /home/yjz/datasets/S10_blur_set/train/**/*.png
-  lr_D: 0.0001
-  lr_G: 0.0001
-  beta1: 0.9
-  optimizer: adam
-  scheduler: linear
-  warmup_epoch: 0
   relative_reblur: true
-  absolute_reblur: false
-  identical_loss: false
-  lambda_G_f_sharp: 1
-  lambda_G_idt: 0
-  lambda_G_content: 100
-  lambda_G_reblur: 0
-  lambda_G_global: 0
-  lambda_D_blur: 0.01
-  lambda_D_f_sharp: 0.01
-  lambda_D_sharp: 0.01
-  global_D: False
-  R1_grad_penalty: False
-  lambda_R1_gamma: 10
-
-val:
-  val_batch_size: 1
-  verbose: False
-  deblur_videos: /home/yjz/datasets/Synthetic_blur/Gao/*_gtimg.png 
-  blur_videos: /home/yjz/datasets/Synthetic_blur/Gao/*_blurryimg.png
 
 model:
   g_name: DMPHN
   d_name: Offset
   use_sigmoid: 0
   norm: 
+  offset_mode: lin
 
 test:
-  result_dir: ./exp_results/DMPHN_syn_test
+  result_dir: ./exp_results/Quad_deblur
   save_dir: *MODEL_NAME 
-  verbose: False 
+  verbose: true 
   which_epoch: latest
   test_batch_size: 1
-  dataset_mode: pair
+  dataset_mode: unpair
   blur_videos: /hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/input/*.png
   deblur_videos: /hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/target/*.png
-  real_blur_videos: /home/yjz/datasets/Synthetic_blur/test_small/*blurryimg.png
-  sharp_videos: /home/yjz/datasets/Synthetic_blur/test_small/*gtimg.png
+  real_blur_videos: /hdd/deblur_datasets/Deblur_whole/test/GOPRO/input/*.png
+  sharp_videos: /hdd/deblur_datasets/Deblur_whole/test/GOPRO/target/*.png

@@ -1,8 +1,8 @@
 ---
 dataset_mode: pair
 
-checkpoints: './checkpoints/tensorboard-MPRnet'
-model_name: &MODEL_NAME MPRnet_GfS2_Itv2 
+checkpoints: './checkpoints/Best_train'
+model_name: &MODEL_NAME RealBlur-J_DMPHN_mixdata 
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
 model_class: MPRnet_finetune
@@ -37,9 +37,9 @@ test:
   which_epoch: latest
   verbose: False
   test_batch_size: 1
-  dataset_mode: unpair
+  dataset_mode: pair
   blur_videos: /home/yjz/hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/input/*.png
   deblur_videos: /home/yjz/hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/target/*.png
-  real_blur_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
+  real_blur_videos: /home/yjz/datasets/S10_finetune_SsetReal_test/*/*.png 
   sharp_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
 

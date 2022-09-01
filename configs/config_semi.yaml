@@ -2,7 +2,7 @@
 dataset_mode: mix
 
 checkpoints: './checkpoints/Quad_deblur'
-model_name: &MODEL_NAME DMPHN_quad
+model_name: &MODEL_NAME DMPHN_lin_exp2
 bmap_model: './checkpoints/reblur_gopro_exp2/D_net_latest.pth'
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
@@ -20,7 +20,7 @@ input_nc: 3
 output_nc: 3
 init_type: xavier
 init_gain: 0.02
-epoch: 200
+epoch: 400
 batch_size: 8
 is_training: true
 iteration_G: 1
@@ -31,8 +31,8 @@ train:
   deblur_videos1: /home/yjz/hdd/deblur_datasets/Gopro_1080p/train/**/sharp/*.png
   blur_videos2: 
   deblur_videos2: 
-  real_blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao_quad_small/*blurryimg.png
-  sharp_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/train_sharp/*gtimg.png 
+  real_blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*blurryimg.png
+  sharp_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*gtimg.png 
   real_blur_videos2: 
   sharp_videos2: 
   lr_D: 0.0001
@@ -45,16 +45,16 @@ train:
   relative_reblur: true
   absolute_reblur: false
   identical_loss: false
-  lambda_G_f_sharp: 2
+  lambda_G_f_sharp: 0.5
   lambda_G_idt: 0
-  lambda_G_tv: 1
-  lambda_G_Itv: 10
+  lambda_G_tv: 0
+  lambda_G_Itv: 0
   lambda_G_content: 100
-  lambda_G_reblur: 50
-  lambda_G_global: 0.1
+  lambda_G_reblur: 10
+  lambda_G_global: 1
   lambda_D_reblur: 1
-  lambda_D_blur: 0.002
-  lambda_D_f_sharp: 0
+  lambda_D_blur: 0.001
+  lambda_D_f_sharp: 0.001
   lambda_D_sharp: 0.002
   lambda_D_tv: 0.002
   global_D: true
@@ -66,27 +66,27 @@ val:
   verbose: False
   blur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/blur/*.png
   deblur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/sharp/*.png
-  real_blur_videos: /hdd/deblur_datasets/Synthetic_blur/Gao_quad_test/*blurryimg.png
+  real_blur_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
   sharp_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
 
 model:
   g_name: DMPHN
   d_name: Offset
   use_sigmoid: 0
-  offset_mode: quad
+  offset_mode: lin
   norm: 
 
 test:
-  result_dir: ./exp_results/Quad_deblur/
+  result_dir: ./exp_results/Reblur-GAN/
   save_dir: *MODEL_NAME
   which_epoch: latest
-  verbose: False
+  verbose: false
   test_batch_size: 1
   dataset_mode: pair
   blur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/blur/*.png
   deblur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/sharp/*.png
-  real_blur_videos: /hdd/deblur_datasets/S10_finetune_set/Real_test/*/*.png
-  sharp_videos: /hdd/deblur_datasets/S10_finetune_set/Real_test/*/*.png 
+  real_blur_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
+  sharp_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
 
 
 

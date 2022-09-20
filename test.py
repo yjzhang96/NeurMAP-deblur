@@ -158,7 +158,7 @@ for index, batch_data in enumerate(test_dataloader):
         utils.save_heat_mmap(reblur_map, save_path)
 
     reblur_S_psnr, reblur_fS_psnr, sharp_blur = psnr
-    print('[time:%.3f]processing %s PSNR: %.2f \t %.2f'%(time.time()-start_time_i, image_path['B_path'],reblur_S_psnr,reblur_fS_psnr))
+    print('[time:%.3f]processing %s PSNR: %.2f '%(time.time()-start_time_i, image_path['B_path'],sharp_blur))
     t_deblur_psnr += sharp_blur
     t_s_reblur_psnr += reblur_S_psnr
     t_fakeS_reblur_psnr += reblur_fS_psnr

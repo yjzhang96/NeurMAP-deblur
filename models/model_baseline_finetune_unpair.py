@@ -75,7 +75,9 @@ class DeblurNet():
                 except:
                     self.net_D.load_state_dict(torch.load(load_D_model)) 
             ## init teacher net
-            self.net_teacher = copy.deepcopy(self.net_G)
+            # self.net_teacher = copy.deepcopy(self.net_G)
+            self.net_teacher = type(self.net_G)() # get a new instance
+            self.net_teacher.load_state_dict(self.net_G.state_dict()) # copy weights and stuff
             print('--------load model %s success!-------'%load_G_model)
             print('-------- teacher model created -------')
 
@@ -235,7 +237,7 @@ class DeblurNet():
         lambda_SSIM = 0.1
         ssim_loss_fS = 1 - self.SSIMloss.get_loss(self.fake_B_from_fS,self.real_B)
 
-        self.loss_d_reblur =  lambda_d_reblur * loss_MSE_fS \
+        self.loss_d_reblur =  lambda_SSIM * ssim_loss_fS + lambda_d_reblur * loss_MSE_fS \
                             + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
 
         self.loss_total = self.loss_adv_D   + self.loss_d_reblur 
@@ -427,12 +429,12 @@ class DeblurNet():
             reblur_S_psnr = PSNR(self.real_B,self.fake_B) 
             sharp_psnr = PSNR(self.real_S,self.fake_S) 
             print('PSNR on step %d:'%i, sharp_psnr)
-            if sharp_psnr > best_psnr:
-                best_psnr = sharp_psnr
-                best_pic = self.fake_S
+            # if sharp_psnr > best_psnr:
+            #     best_psnr = sharp_psnr
+            #     best_pic = self.fake_S
             reblur_fS_psnr = PSNR(self.real_B,self.fake_B_from_fS) 
-        self.fake_S = best_pic
-        return (reblur_S_psnr,reblur_fS_psnr,best_psnr)
+        # self.fake_S = best_pic
+        return (reblur_S_psnr,reblur_fS_psnr,sharp_psnr)
 
     def save(self,epoch):
         save_d_filename = 'D_net_%s.pth'%epoch

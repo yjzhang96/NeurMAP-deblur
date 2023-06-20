@@ -15,12 +15,8 @@ from data import dataloader_pair
 from data import dataloader_unpair
 from shutil import rmtree
 
-# from models import model_reblur_gan_lr
-from models import model_unpair_double_D
-from models import model_semi_double_D_GDaddB_finetune
 from utils import utils
-from models import model_baseline_finetune, model_baseline_finetune_quad, model_baseline_finetune_unpair
-from models import model_semi_double_D_GOPRO
+from models import model_baseline_MAP, model_baseline_MAP_quad, model_baseline_MAP_unpair
             
 parser = argparse.ArgumentParser()
 parser.add_argument("--config_file", type=str, default='./checkpoints/config.yaml')
@@ -42,7 +38,6 @@ with open(config.config_file,'r') as f:
     utils.print_config(config)
 
 ### make saving dir
-# import ipdb; ipdb.set_trace()
 test_config = config['test']
 if not os.path.exists(test_config['result_dir']):
     os.makedirs(test_config['result_dir'],exist_ok=True)
@@ -56,19 +51,12 @@ if not os.path.exists(image_save_dir):
 
 # test
 ### initialize model
-
-
-
-if config['model_class'] == "Semi_doubleD_addB_finetune":
-    Model = model_semi_double_D_GDaddB_finetune
-elif config['model_class'] == "GOPRO_deblur":
-    Model = model_semi_double_D_GOPRO
-elif config['model_class'] == "Baseline_finetune":
-    Model = model_baseline_finetune
-elif config['model_class'] == "Baseline_finetune_quad":
-    Model = model_baseline_finetune_quad
-elif config['model_class'] == "Baseline_finetune_unpair":
-    Model = model_baseline_finetune_unpair
+if config['model_class'] == "Baseline_MAP":
+    Model = model_baseline_MAP
+elif config['model_class'] == "Baseline_MAP_quad":
+    Model = model_baseline_MAP_quad
+elif config['model_class'] == "Baseline_MAP_unpair":
+    Model = model_baseline_MAP_unpair
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
 
@@ -94,7 +82,7 @@ t_s_reblur_psnr = 0
 t_fakeS_reblur_psnr = 0
 cnt = 0
 model.net_G.eval()
-model.net_D.eval()
+model.net_M.eval()
 record_file = os.path.join(test_config['result_dir'],test_config['save_dir'],'PSNR.txt')
 start_time = time.time()
 print('--------testing begin----------')
@@ -172,6 +160,4 @@ elif test_config['dataset_mode'] == 'unpair':
 print(message)
 write_txt(record_file, message)
 print('using time %.3f'%(time.time()-start_time))
-# log_name = os.path.join(image_save_dir,'psnr_log.txt')   
-# with open(log_name,'a') as log:
-#     log.write(message+'\n')
+

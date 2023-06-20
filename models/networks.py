@@ -9,7 +9,6 @@ import functools
 from .functions import ReverseLayerF
 from .UNet_discriminator import UNetDiscriminator
 from .DCN_v2.modules.modulated_deform_conv import ModulatedDeformConv_blur
-from .bdcn import bdcn
 from .MPRNet import MPRNet
 from .MIMOUNet import MIMOUNet,MIMOUNetPlus
 
@@ -93,7 +92,7 @@ def define_net_G(config):
     model_g = init_net(model_g,gpu_ids=config['gpu'])
     return model_g
 
-def define_net_D(config):
+def define_net_M(config):
     if config['model']['norm'] != None:
         norm_layer = get_norm_layer(norm_type=config['model']['norm'])
     else:
@@ -110,7 +109,7 @@ def define_net_D(config):
     model_d = init_net(model_d,gpu_ids=config['gpu'])
     return model_d
 
-def define_global_D(config, input_nc=3, ndf=64, n_layers_D=3, norm='instance', use_sigmoid=False, num_D=2, getIntermFeat=False):        
+def define_natural_D(config, input_nc=3, ndf=64, n_layers_D=3, norm='instance', use_sigmoid=False, num_D=2, getIntermFeat=False):        
     norm_layer = get_norm_layer(norm_type=norm)   
     patch_gan = MultiscaleDiscriminator(input_nc, ndf, n_layers_D, norm_layer, use_sigmoid, num_D, getIntermFeat=True)   
  

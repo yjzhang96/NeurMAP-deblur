@@ -39,10 +39,10 @@ def write_txt(file_name, line):
 
 
 def metrics_name():
-    print("-----calculate metrics for result: %s ---------"%args.res_root)
+    
     for root, dirs, files in os.walk(args.res_root):
         dir_in_rootpath = dirs
-        print(root,'\n', dirs,'\n', files)
+        # print(root,'\n', dirs,'\n', files)
         break
     if not args.ref_root:
         args.ref_root=args.res_root
@@ -67,9 +67,9 @@ def metrics_name():
     record_file = os.path.join(dir_root,'PSNR+LPIPS.txt')
 
     print(record_file)
-    if os.path.exists(record_file):
-        os.system('rm %s'%record_file)
-    
+    # if os.path.exists(record_file):
+    #     os.system('rm %s'%record_file)
+    write_txt(record_file, "-----calculate metrics for result: %s ---------"%args.res_root) 
     if multiple_video:
         for path in dirs:
             ref_path = os.path.join(args.ref_root,path,'sharp')
@@ -130,8 +130,8 @@ def metrics_name():
         print(ref_path,res_path)
         gt_files = os.listdir(ref_path)
         res_files = os.listdir(res_path)
-        gt_files = [i for i in gt_files if i.endswith('.png')]
-        res_files = [i for i in res_files if i.endswith('.png')]
+        gt_files = [i for i in gt_files if i.endswith('gtimg.png')]
+        res_files = [i for i in res_files if i.endswith('fake_S.png')]
 
         print("total %d images in directory %s"%(len(res_files),res_path))
         gt_files = sorted(gt_files)
@@ -175,7 +175,7 @@ def metrics_name():
             lpips_video += per_lpips
 
             cnt_video += 1
-            print('psnr:%.2f, lpips:%.4f'%(per_psnr, per_lpips))
+            write_txt(record_file, '%s \t psnr:%.2f, lpips:%.4f'%(res_files[i],per_psnr, per_lpips))
         t_ssim += ssim_video
         t_psnr += psnr_video
         t_lpips += lpips_video

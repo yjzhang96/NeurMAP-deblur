@@ -16,8 +16,7 @@ from data import dataloader_pair
 from data import dataloader_unpair
 
 
-from models import model_baseline_finetune_diff, model_semi_double_D_GDaddB_finetune
-from models import model_baseline_finetune, model_baseline_finetune_unpair, model_baseline_finetune_quad
+from models import model_baseline_MAP, model_baseline_MAP_quad
 
 from utils import utils
 from tensorboardX import SummaryWriter
@@ -46,18 +45,12 @@ os.system('cp %s %s'%(args.config_file, model_save_dir))
 #     device = torch.device("cpu")
 
 ### initialize model
-if config['model_class'] == "Semi_doubleD_addB_finetune":
-    Model = model_semi_double_D_GDaddB_finetune
-    os.system('cp %s %s'%('models/model_semi_double_D_GDaddB_finetune.py', model_save_dir))
-elif config['model_class'] == "Baseline_finetune":
-    Model = model_baseline_finetune
-    os.system('cp %s %s'%('models/model_baseline_finetune.py', model_save_dir))
-elif config['model_class'] == "Baseline_finetune_quad":
-    Model = model_baseline_finetune_quad
-    os.system('cp %s %s'%('models/model_baseline_finetune_quad.py', model_save_dir))
-elif config['model_class'] == "Diff_GT":
-    Model = model_baseline_finetune_diff
-    os.system('cp %s %s'%('models/model_baseline_finetune_diff.py', model_save_dir))
+if config['model_class'] == "Baseline_MAP":
+    Model = model_baseline_MAP
+    os.system('cp %s %s'%('models/model_baseline_MAP.py', model_save_dir))
+elif config['model_class'] == "Baseline_MAP_quad":
+    Model = model_baseline_MAP_quad
+    os.system('cp %s %s'%('models/model_baseline_MAP_quad.py', model_save_dir))
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
 
@@ -75,12 +68,12 @@ if config['dataset_mode'] == 'pair':
 elif config['dataset_mode'] == 'mix':
     train_dataset = dataloader_pair.BlurryVideo(config, train= True)
     train_dataloader = DataLoader(train_dataset,
-                                    batch_size=config['batch_size']//2,
+                                    batch_size=3*config['batch_size']//4,
                                     shuffle = True,
                                     num_workers=16)
     train_dataset_unpair = dataloader_unpair.BlurryVideo(config, train= True)
     train_dataloader_unpair = DataLoader(train_dataset_unpair,
-                                    batch_size=config['batch_size']//2,
+                                    batch_size=config['batch_size']//4,
                                     shuffle = True,
                                     num_workers=16)
     val_dataset = dataloader_pair.BlurryVideo(config, train= False)
@@ -126,9 +119,9 @@ if config['resume_train']:
         assert config['start_epoch'] != 0
 else:
     os.system('rm %s/%s/psnr_log.txt'%(config['checkpoints'], config['model_name']))
-    # os.system('rm %s/%s/loss_log.txt'%(config['checkpoints'], config['model_name']))
     os.system('rm %s/%s/event*'%(config['checkpoints'], config['model_name']))
-# init model
+
+### init model
 model = Model.DeblurNet(config)
 # if config['resume_train']:
 #     model.load(config)
@@ -197,27 +190,14 @@ def validation_unpair(epoch):
         log.write(message)
     return (t_b_psnr/cnt,t_fakeS_reblur_psnr/cnt, t_s_psnr/cnt)
 
-# training
-#val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr = validation_pair(config['start_epoch'])
-#writer.add_scalar('PairPSNR/deblur', val_deblur_psnr, config['start_epoch'])
-#writer.add_scalar('PairPSNR/reblur-S', val_reblur_S_psnr, config['start_epoch'])
-#writer.add_scalar('PairPSNR/reblur-fakeS', val_reblur_fS_psnr, config['start_epoch'])
-# val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr = validation_unpair(config['start_epoch'])
-# writer.add_scalar('UnpairPSNR/deblur', val_deblur_psnr, config['start_epoch'])
-# writer.add_scalar('UnpairPSNR/reblur-S', val_reblur_S_psnr, config['start_epoch'])
-# writer.add_scalar('UnpairPSNR/reblur-fakeS', val_reblur_fS_psnr, config['start_epoch'])
-
+### training
 best_psnr = 0.0
 for epoch in range(config['start_epoch'], config['epoch']):
     epoch_start_time = time.time()
     step_per_epoch = min(len(train_dataloader), len(train_dataloader_unpair))
-    # for step, (batch_data1, batch_data2) in enumerate(zip(train_dataloader_gt,train_dataloader_unpair)):
-    G_iter = 0
-    D_iter = 0
+
     for step, (batch_data1, batch_data_unpair) in enumerate(zip(train_dataloader,train_dataloader_unpair)):
-        p = float(step + epoch * step_per_epoch) / config['epoch'] / step_per_epoch
-        alpha = 2. / (1. + np.exp(-10 * p)) - 1
-        # # training step 2
+        # # mix training data  
         time_step1 = time.time()
         batch_cat = {}
         batch_cat['B'] = torch.cat((batch_data1['B'],batch_data_unpair['B']),dim=0)
@@ -225,10 +205,8 @@ for epoch in range(config['start_epoch'], config['epoch']):
         batch_cat['B_path'] = batch_data1['B_path'] + batch_data_unpair['B_path']
         batch_cat['gt'] = torch.cat((batch_data1['gt'],batch_data_unpair['gt']),dim=0)
         model.set_input(batch_cat)        
-        if config['model_class'] == "Semi_doubleD_addB_DomAda":
-            model.optimize(alpha=alpha)
-        else:
-            model.optimize()    
+
+        model.optimize()    
             
 
         if step%config['display_freq'] == 0:
@@ -250,18 +228,7 @@ for epoch in range(config['start_epoch'], config['epoch']):
 
     if epoch != 0 and epoch%config['save_epoch'] == 0:
         model.save(epoch)
-    paired_results, unpaired_results, mmap_vis = model.get_tensorboard_images()
-    writer.add_image('Pair/real_B', paired_results['real_B'],epoch)
-    writer.add_image('Pair/real_S', paired_results['real_S'],epoch)
-    writer.add_image('Pair/fake_S', paired_results['fake_S'],epoch)
-    writer.add_image('Pair/fake_B', paired_results['fake_B'],epoch)
-    writer.add_image('UnPair/real_B', unpaired_results['real_B'],epoch)
-    writer.add_image('UnPair/real_S', unpaired_results['real_S'],epoch)
-    writer.add_image('UnPair/fake_S', unpaired_results['fake_S'],epoch)
-    writer.add_image('UnPair/fake_B', unpaired_results['fake_B'],epoch)
-    writer.add_image('UnPair/B_S_offset', mmap_vis['real_B'],epoch)
-    writer.add_image('UnPair/real_S_offset', mmap_vis['real_S'],epoch)
-    writer.add_image('UnPair/B_fS_offset', mmap_vis['fake_S'],epoch)
+    
 
     if epoch%config['val_freq'] == 0:
         val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr  = validation_pair(epoch)

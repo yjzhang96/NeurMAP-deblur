@@ -2,7 +2,7 @@
 dataset_mode: pair
 
 checkpoints: './checkpoints/Best_train'
-model_name: &MODEL_NAME SemiSyn_small_pretrainGopro
+model_name: &MODEL_NAME RealBlur-J_DMPHN_mixdata 
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
 model_class: Baseline_finetune_unpair
@@ -51,13 +51,13 @@ train:
   lambda_G_tv: 1
   lambda_G_Itv: 10
   lambda_G_teacher: 0
-  lambda_G_reblur: 50
+  lambda_G_reblur: 10
   lambda_G_global: 0.1
-  lambda_D_reblur: 50
-  lambda_D_blur: 0.002
-  lambda_D_f_sharp: 0.001
-  lambda_D_sharp: 0.002
-  lambda_D_tv: 0.0002
+  lambda_M_reblur: 1
+  lambda_M_blur: 0.002
+  lambda_M_f_sharp: 0.001
+  lambda_M_sharp: 0.002
+  lambda_M_tv: 0.0002
   global_D: true
 
 test:
@@ -68,8 +68,8 @@ test:
   test_batch_size: 1
   dataset_mode: pair
   inference_num: 8
-  blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
-  deblur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
+  blur_videos: /home/yjz/hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/input/*.png
+  deblur_videos: /home/yjz/hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/target/*.png
   real_blur_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
   sharp_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
 

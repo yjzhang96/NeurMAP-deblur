@@ -1,11 +1,11 @@
 ---
 dataset_mode: pair
 
-checkpoints: './checkpoints/Best_train'
-model_name: &MODEL_NAME RealBlur-J_DMPHN_mixdata 
+checkpoints: './checkpoints/final_test'
+model_name: &MODEL_NAME SemiSyn_DMPHN_pair3_unpair1
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
-model_class: MPRnet_finetune
+model_class: Baseline_MAP
 resume_train: False
 which_epoch: latest 
 start_epoch: 0
@@ -26,20 +26,21 @@ iteration_G: 1
 load_only_G: False
 
 model:
-  g_name: MPRnet
+  g_name: DMPHN
   d_name: Offset
   use_sigmoid: 0
+  offset_mode: lin
   norm: 
 
 test:
-  result_dir: ./exp_results/MPRnet
+  result_dir: ./exp_results/final_test
   save_dir: *MODEL_NAME 
   which_epoch: latest
   verbose: False
   test_batch_size: 1
   dataset_mode: pair
-  blur_videos: /home/yjz/hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/input/*.png
-  deblur_videos: /home/yjz/hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/target/*.png
+  blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
+  deblur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
   real_blur_videos: /home/yjz/datasets/S10_finetune_SsetReal_test/*/*.png 
   sharp_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
 

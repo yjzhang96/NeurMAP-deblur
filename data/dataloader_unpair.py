@@ -160,9 +160,6 @@ class BlurryVideo(data.Dataset):
         if train:
             self.blurry_dir = config['train']['real_blur_videos']
             self.sharp_dir = config['train']['sharp_videos']
-            if config['train'].get('real_blur_videos2',None):
-                blurry_dir2 = config['train']['real_blur_videos2']
-                sharp_dir2 = config['train']['sharp_videos2']
 
         else:
             if config.get('is_training', None):
@@ -173,8 +170,7 @@ class BlurryVideo(data.Dataset):
                 self.sharp_dir = config['test']['sharp_videos']
 
         framesPath = _make_dataset(self.blurry_dir,self.sharp_dir,config)
-        if train and config['train'].get('real_blur_videos2',None):
-            framesPath += _make_dataset(blurry_dir2,sharp_dir2,config)
+
         # Raise error if no images found in root.
         if len(framesPath) == 0:
             raise(RuntimeError("Found 0 files in subfolders of datasets"))

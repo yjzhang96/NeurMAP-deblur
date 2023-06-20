@@ -19,7 +19,7 @@ import torch
 parser = argparse.ArgumentParser(description='Image Deblurring using MPRNet')
 
 parser.add_argument('--gt_dir', default='/hdd/deblur_datasets/RealBlur/RealBlur-J_dataset/test/target/*.png', type=str, help='Directory of validation images')
-parser.add_argument('--result_dir', default='./results/', type=str, help='Directory for results')
+parser.add_argument('--result_dir', required=True, type=str, help='Directory for results')
 args = parser.parse_args()
 lpips_fn_alex = lpips.LPIPS(net='alex') # best forward scores
 

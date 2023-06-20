@@ -2,16 +2,17 @@
 dataset_mode: unpair
 
 checkpoints: './checkpoints/Unpair'
-model_name: &MODEL_NAME unpairSyn_teacherLoss0.1_reblurtest
+model_name: &MODEL_NAME DMPHN_unpairSyn_pretrain
 bmap_model: './checkpoints/reblur_gopro_exp2/D_net_latest.pth'
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
-DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
-model_class: baseline_finetune_unpair
+DMPHN_model: 
+MTR_model: './pretrain_models/MTR/lin/latest_net_offset.pth'
+model_class: Baseline_finetune_unpair
 resume_train: false 
 which_epoch: latest
 start_epoch: 0
-save_epoch: 10
-display_freq: 20
+save_epoch: 20
+display_freq: 10
 val_freq: 4
 crop_size_X: 256
 crop_size_Y: 256
@@ -21,7 +22,7 @@ output_nc: 3
 init_type: xavier
 init_gain: 0.02
 epoch: 400
-batch_size: 2
+batch_size: 8
 is_training: true
 iteration_G: 1
 load_only_G: false
@@ -31,7 +32,7 @@ train:
   deblur_videos: /hdd/deblur_datasets/Gopro_1080p/train/**/sharp/*.png
   real_blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*blurryimg.png
   sharp_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*gtimg.png
-  lr_D: 0.0001
+  lr_D: 0.00005
   lr_G: 0.00005
   lr_M: 0.0001
   beta1: 0.9
@@ -41,19 +42,19 @@ train:
   relative_reblur: true
   absolute_reblur: false
   identical_loss: false
-  lambda_G_f_sharp: 2
+  lambda_G_f_sharp: 0.5
   lambda_G_idt: 0
   lambda_G_tv: 1
-  lambda_G_Itv: 10
-  lambda_G_teacher: 0.1
+  lambda_G_Itv: 1
+  lambda_G_teacher: 0
   lambda_G_reblur: 50
-  lambda_G_global: 0.1
-  lambda_D_reblur: 0
-  lambda_D_blur: 0.002
-  lambda_D_f_sharp: 0.001
-  lambda_D_sharp: 0.002
-  lambda_D_tv: 0.002
-  global_D: true
+  lambda_G_global: 1
+  lambda_M_reblur: 50
+  lambda_M_blur: 0.001
+  lambda_M_f_sharp: 0.002
+  lambda_M_sharp: 0.002
+  lambda_M_tv: 0.002
+  natural_D: true
 
 
 val:
@@ -61,24 +62,25 @@ val:
   verbose: False
   blur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/blur/*.png
   deblur_videos: /hdd/deblur_datasets/Gopro_1080p/test/**/sharp/*.png
-  real_blur_videos: /hdd/deblur_datasets/Synthetic_blur/Gao/*blurryimg.png
-  sharp_videos: /hdd/deblur_datasets/Synthetic_blur/Gao/*gtimg.png
+  real_blur_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
+  sharp_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
 
 model:
   g_name: DMPHN
   d_name: Offset
   use_sigmoid: 0
   norm: 
+  offset_mode: lin
 
 test:
   result_dir: ./exp_results/Unpair
   save_dir: *MODEL_NAME
-  verbose: true
+  verbose: false
   which_epoch: latest
   test_batch_size: 1
   dataset_mode: pair
-  blur_videos: /hdd/deblur_datasets/Synthetic_blur/Gao/*blurryimg.png
-  deblur_videos: /hdd/deblur_datasets/Synthetic_blur/Gao/*gtimg.png
+  blur_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
+  deblur_videos: /hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
   real_blur_videos: /hdd/deblur_datasets/S10_blur_set/train/**/*.png
 
 

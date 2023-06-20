@@ -43,7 +43,7 @@ os.system('cp %s %s'%(args.config_file, model_save_dir))
 
 
 ### initialize model
-if config['model_class'] == "baseline_finetune_unpair":
+if config['model_class'] == "Baseline_finetune_unpair":
     Model = model_baseline_finetune_unpair
     os.system('cp %s %s'%('models/model_baseline_finetune_unpair.py', model_save_dir))
 
@@ -127,31 +127,6 @@ def display_loss(loss,epoch,tot_epoch,step,step_per_epoch,time):
     with open(log_name,'a') as log:
         log.write(messege+'\n')
 
-# validation
-# def validation_pair(epoch):
-#     t_b_psnr = 0
-#     t_s_psnr = 0
-#     t_fakeS_reblur_psnr = 0
-#     cnt = 0
-#     start_time = time.time()
-#     print('--------validation begin----------')
-#     for index, batch_data in enumerate(val_dataloader):
-#         model.set_input(batch_data)
-#         reblur_S_psnr, reblur_fS_psnr, sharp_blur = model.test(validation=True)
-#         t_b_psnr += reblur_S_psnr
-#         t_fakeS_reblur_psnr += reblur_fS_psnr
-#         t_s_psnr += sharp_blur
-#         cnt += 1
-#         if index > 100:
-#             break
-#     message = 'UnPair-data epoch %s blur PSNR: %.2f \n'%(epoch, t_fakeS_reblur_psnr/cnt)
-#     message += 'UnPair-data epoch %s deblur PSNR: %.2f \n'%(epoch, t_s_psnr/cnt)
-#     print(message)
-#     print('using time %.3f'%(time.time()-start_time))
-#     log_name = os.path.join(config['checkpoints'],config['model_name'],'psnr_log.txt')   
-#     with open(log_name,'a') as log:
-#         log.write(message)
-#     return (t_b_psnr/cnt,t_fakeS_reblur_psnr/cnt, t_s_psnr/cnt)
 
 def validation_unpair(epoch):
     t_b_psnr = 0
@@ -179,10 +154,10 @@ def validation_unpair(epoch):
     return (t_b_psnr/cnt,t_fakeS_reblur_psnr/cnt, t_s_psnr/cnt)
 
 # training
-# val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr = validation_pair(config['start_epoch'])
-# writer.add_scalar('UnPairPSNR/deblur', val_deblur_psnr, config['start_epoch'])
-# writer.add_scalar('UnPairPSNR/reblur-S', val_reblur_S_psnr, config['start_epoch'])
-# writer.add_scalar('UnPairPSNR/reblur-fakeS', val_reblur_fS_psnr, config['start_epoch'])
+val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr = validation_unpair(config['start_epoch'])
+writer.add_scalar('UnpairPSNR/deblur', val_deblur_psnr, config['start_epoch'])
+writer.add_scalar('UnpairPSNR/reblur-S', val_reblur_S_psnr, config['start_epoch'])
+writer.add_scalar('UnpairPSNR/reblur-fakeS', val_reblur_fS_psnr, config['start_epoch'])
 
 best_psnr = 0.0
 for epoch in range(config['start_epoch'], config['epoch']):
@@ -230,9 +205,9 @@ for epoch in range(config['start_epoch'], config['epoch']):
 
     if epoch%config['val_freq'] == 0:
         val_reblur_S_psnr,val_reblur_fS_psnr, val_deblur_psnr  = validation_unpair(epoch)
-        writer.add_scalar('UnPairPSNR/deblur', val_deblur_psnr, epoch)
-        writer.add_scalar('UnPairPSNR/reblur-S', val_reblur_S_psnr, epoch)
-        writer.add_scalar('UnPairPSNR/reblur-fakeS', val_reblur_fS_psnr, epoch)
+        writer.add_scalar('UnpairPSNR/deblur', val_deblur_psnr, epoch)
+        writer.add_scalar('UnpairPSNR/reblur-S', val_reblur_S_psnr, epoch)
+        writer.add_scalar('UnpairPSNR/reblur-fakeS', val_reblur_fS_psnr, epoch)
 
         if val_deblur_psnr > best_psnr:
             best_psnr = val_deblur_psnr

@@ -29,25 +29,6 @@ def _make_dataset(blurry_dir,deblur_dir,config):
     """
 
 
-    # framesPath = []
-    # # Find and loop over all the clips in root `dir`.
-    # count = 0
-    # for index, folder in enumerate(os.listdir(blurry_dir)):
-    #     BlurryFolderPath = os.path.join(blurry_dir, folder)
-    #     SharpFolderPath = os.path.join(deblur_dir, folder)
-
-    #     # Skip items which are not folders.
-    #     if not (os.path.isdir(BlurryFolderPath)):
-    #         continue
-    #     BlurryFramePath = sorted(os.listdir(BlurryFolderPath))
-    #     for frame_index in range(len(BlurryFramePath)):
-    #         framesPath.append({})
-    #         framesPath[count]['B'] = os.path.join(BlurryFolderPath,BlurryFramePath[frame_index])
-    #         num_frame_B = int(BlurryFramePath[frame_index].split('.')[0])
-
-    #         framesPath[count]['S'] = os.path.join(SharpFolderPath,"%06d.png"%(num_frame_B))
-    #         count += 1
-    # return framesPath
     
     
     framesPath = []
@@ -168,11 +149,8 @@ class BlurryVideo(data.Dataset):
         # frame in `root`.
         self.config = config
         if train:
-            self.blurry_dir = config['train']['blur_videos1']
-            self.deblur_dir = config['train']['deblur_videos1']
-            if config['train']['blur_videos2']:
-                blurry_2 = config['train']['blur_videos2']
-                deblur_2 = config['train']['deblur_videos2']
+            self.blurry_dir = config['train']['blur_videos']
+            self.deblur_dir = config['train']['deblur_videos']
             
         else:
             if config['is_training']:
@@ -184,8 +162,6 @@ class BlurryVideo(data.Dataset):
 
            
         framesPath = _make_dataset(self.blurry_dir,self.deblur_dir,config)
-        if train and config['train']['blur_videos2']:
-            framesPath += _make_dataset(blurry_2, deblur_2, config)
 
         # Raise error if no images found in root.
         if len(framesPath) == 0:

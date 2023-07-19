@@ -181,7 +181,13 @@ class DeblurNet():
                                 + lambda_d_fS * self.loss_d_fake_sharp + lambda_d_B * self.loss_d_blur
         
 
-        
+        # loss: Map_fS is smaller than Map_B
+        Mag_fake_S = torch.sqrt(mmap_fake_S_norm[:,0,:,:]**2 + mmap_fake_S_norm[:,1,:,:]**2)
+        Mag_real_B = torch.sqrt(mmap_real_B_norm[:,0,:,:]**2 + mmap_real_B_norm[:,1,:,:]**2)
+        Mag_diff = Mag_fake_S - Mag_real_B
+        Mag_gt = torch.where(Mag_diff>0, Mag_diff, torch.zeros_like(Mag_diff))
+        self.loss_Mag_gt = torch.mean(Mag_gt)  
+
         # reblur loss       
         if self.config['train']['relative_reblur']:
             mmap_rB_fS = mmap_real_B_norm - mmap_fake_S_norm
@@ -215,7 +221,7 @@ class DeblurNet():
         self.loss_d_reblur =  lambda_SSIM * ssim_loss_fS + lambda_d_reblur * loss_MSE_fS \
                             + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
 
-        self.loss_total = self.loss_adv_D   + self.loss_d_reblur 
+        self.loss_total = self.loss_adv_D   + self.loss_d_reblur + self.loss_Mag_gt
         # import ipdb; ipdb.set_trace()
         self.optimizer_M.zero_grad()
         self.loss_total.backward()

@@ -115,7 +115,7 @@ def metrics_name():
 
                 cnt_video += 1
                 # print('psnr/lpips: %.2f %.4f'%(per_psnr, per_lpips))
-                write_txt(record_file,'psnr/lpips: %.2f %.4f'%(per_psnr, per_lpips))
+                # write_txt(record_file,'psnr/lpips: %.2f %.4f'%(per_psnr, per_lpips))
             # line = 'result for video %s ssim:%.4f'%(path, ssim_video / cnt_video)
             # write_txt(record_file, line)
             line = 'result for video %s psnr:%.2f'%(path, psnr_video / cnt_video)
@@ -143,8 +143,8 @@ def metrics_name():
         ssim_video = 0
         lpips_video = 0
         for i in range(len(res_files)):
-            if '006_blurryimg' in res_files[i]:
-                continue
+            # if '006_blurryimg' in res_files[i]:
+                # continue
             
             imname = os.path.join(ref_path,gt_files[i])
             img1 = io.imread(imname)
@@ -175,7 +175,7 @@ def metrics_name():
             lpips_video += per_lpips
 
             cnt_video += 1
-            write_txt(record_file, '%s \t psnr:%.2f, lpips:%.4f'%(res_files[i],per_psnr, per_lpips))
+            # write_txt(record_file, '%s \t psnr:%.2f, lpips:%.4f'%(res_files[i],per_psnr, per_lpips))
         t_ssim += ssim_video
         t_psnr += psnr_video
         t_lpips += lpips_video

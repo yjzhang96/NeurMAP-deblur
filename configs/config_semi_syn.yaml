@@ -2,7 +2,7 @@
 dataset_mode: mix
 
 checkpoints: './checkpoints/final_test'
-model_name: &MODEL_NAME SemiSyn_DMPHN_pair3_unpair1
+model_name: &MODEL_NAME SemiSyn_DMPHN_0719
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
 model_class: Baseline_MAP
@@ -23,13 +23,13 @@ epoch: 400
 batch_size: 4
 is_training: true
 iteration_G: 1
-load_only_G: True
+load_only_G: false
 
 train:
-  blur_videos: /home/yjz/hdd/deblur_datasets/Gopro_1080p/train/**/blur/*.png
-  deblur_videos: /home/yjz/hdd/deblur_datasets/Gopro_1080p/train/**/sharp/*.png
-  real_blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*blurryimg.png
-  sharp_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/Gao/*gtimg.png
+  blur_videos: /home/yjz/datasets/Gopro_1080p/train/**/blur/*.png
+  deblur_videos: /home/yjz/datasets/Gopro_1080p/train/**/sharp/*.png
+  real_blur_videos: /home/yjz/datasets/Synthetic_blur/Gao/*blurryimg.png
+  sharp_videos: /home/yjz/datasets/Synthetic_blur/Gao/*gtimg.png
   lr_D: 0.0001
   lr_G: 0.00005
   lr_M: 0.0001
@@ -44,7 +44,7 @@ train:
   lambda_G_tv: 0
   lambda_G_Itv: 0
   lambda_G_content: 100
-  lambda_G_reblur: 10
+  lambda_G_reblur: 100
   lambda_G_global: 1
   lambda_M_reblur: 1
   lambda_M_blur: 0.001
@@ -57,10 +57,10 @@ train:
 val:
   val_batch_size: 1
   verbose: False
-  blur_videos: /home/yjz/hdd/deblur_datasets/Gopro_1080p/test/**/blur/*.png
-  deblur_videos: /home/yjz/hdd/deblur_datasets/Gopro_1080p/test/**/sharp/*.png
-  real_blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
-  sharp_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
+  blur_videos: /home/yjz/datasets/Gopro_1080p/test/**/blur/*.png
+  deblur_videos: /home/yjz/datasets/Gopro_1080p/test/**/sharp/*.png
+  real_blur_videos: /home/yjz/datasets/Synthetic_blur/test_small/*blurryimg.png
+  sharp_videos: /home/yjz/datasets/Synthetic_blur/test_small/*gtimg.png
 
 model:
   g_name: DMPHN
@@ -70,15 +70,15 @@ model:
   norm: 
 
 test:
-  result_dir: ./exp_results/RealBlur
+  result_dir: ./exp_results/
   save_dir: *MODEL_NAME
   verbose: False
   test_batch_size: 1
   dataset_mode: pair
   which_epoch: latest
-  blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
-  deblur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
-  real_blur_videos: /home/yjz/hdd/deblur_datasets/S10_blur_set/train/**/*.png
+  blur_videos: /home/yjz/datasets/Synthetic_blur/test_small/*blurryimg.png
+  deblur_videos: /home/yjz/datasets/Synthetic_blur/test_small/*gtimg.png
+  real_blur_videos: /home/yjz/datasets/S10_blur_set/train/**/*.png
 
 
 

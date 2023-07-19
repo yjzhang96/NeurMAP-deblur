@@ -16,7 +16,7 @@ from data import dataloader_pair
 from data import dataloader_unpair
 
 
-from models import model_baseline_MAP, model_baseline_MAP_quad
+from models import model_baseline_MAP, model_baseline_MAP_quad,model_semi_double_D
 
 from utils import utils
 from tensorboardX import SummaryWriter
@@ -51,6 +51,9 @@ if config['model_class'] == "Baseline_MAP":
 elif config['model_class'] == "Baseline_MAP_quad":
     Model = model_baseline_MAP_quad
     os.system('cp %s %s'%('models/model_baseline_MAP_quad.py', model_save_dir))
+elif config['model_class'] == "Baseline_double_D":
+    Model = model_semi_double_D
+    os.system('cp %s %s'%('models/model_semi_double_D.py', model_save_dir))
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
 
@@ -68,12 +71,12 @@ if config['dataset_mode'] == 'pair':
 elif config['dataset_mode'] == 'mix':
     train_dataset = dataloader_pair.BlurryVideo(config, train= True)
     train_dataloader = DataLoader(train_dataset,
-                                    batch_size=3*config['batch_size']//4,
+                                    batch_size=config['batch_size']//2,
                                     shuffle = True,
                                     num_workers=16)
     train_dataset_unpair = dataloader_unpair.BlurryVideo(config, train= True)
     train_dataloader_unpair = DataLoader(train_dataset_unpair,
-                                    batch_size=config['batch_size']//4,
+                                    batch_size=config['batch_size']//2,
                                     shuffle = True,
                                     num_workers=16)
     val_dataset = dataloader_pair.BlurryVideo(config, train= False)

@@ -2,12 +2,12 @@
 dataset_mode: pair
 
 checkpoints: './checkpoints/final_test'
-model_name: &MODEL_NAME SemiSyn_DMPHN_pair3_unpair1
+model_name: &MODEL_NAME SemiSyn_DMPHN_p25_0702
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
 DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
 model_class: Baseline_MAP
 resume_train: False
-which_epoch: latest 
+which_epoch: best 
 start_epoch: 0
 save_epoch: 10
 display_freq: 100
@@ -33,14 +33,14 @@ model:
   norm: 
 
 test:
-  result_dir: ./exp_results/final_test
+  result_dir: ./results/final_test
   save_dir: *MODEL_NAME 
-  which_epoch: latest
+  which_epoch: 580
   verbose: False
   test_batch_size: 1
   dataset_mode: pair
-  blur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*blurryimg.png
-  deblur_videos: /home/yjz/hdd/deblur_datasets/Synthetic_blur/test_small/*gtimg.png
+  blur_videos: /home/yjz/datasets/Gopro_1080p/test/**/blur/*.png
+  deblur_videos: /home/yjz/datasets/Gopro_1080p/test/**/sharp/*.png
   real_blur_videos: /home/yjz/datasets/S10_finetune_SsetReal_test/*/*.png 
   sharp_videos: /home/yjz/datasets/S10_finetune_set/Real_test/*/*.png 
 

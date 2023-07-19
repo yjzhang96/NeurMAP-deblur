@@ -162,6 +162,13 @@ class DeblurNet():
                                 + lambda_d_fS * self.loss_d_fake_sharp + lambda_d_B * self.loss_d_blur
         
         
+        # loss: Map_fS is smaller than Map_B
+        Mag_fake_S = torch.sqrt(mmap_fake_S_norm[:,0,:,:]**2 + mmap_fake_S_norm[:,1,:,:]**2)
+        Mag_real_B = torch.sqrt(mmap_real_B_norm[:,0,:,:]**2 + mmap_real_B_norm[:,1,:,:]**2)
+        Mag_diff = Mag_fake_S - Mag_real_B
+        Mag_gt = torch.where(Mag_diff>0, Mag_diff, torch.zeros_like(Mag_diff))
+        self.loss_Mag_gt = torch.mean(Mag_gt)   
+
         # reblur loss       
         if self.config['train']['relative_reblur']:
             ## reblur with relative motion
@@ -180,8 +187,8 @@ class DeblurNet():
                         self.L1loss(offsets[:,:,:,:-1,:],offsets[:,:,:,1:,:])
 
         # # regulationl loss
-        lambda_reg = 0.0002
-        reg_loss = torch.mean(offsets[:,:,:,:,:]**2)
+        # lambda_reg = 0.0002
+        # reg_loss = torch.mean(offsets[:,:,:,:,:]**2)
         
         # MSE loloss
         loss_MSE_fS = self.MSE(self.fake_B_from_fS,self.real_B)
@@ -191,10 +198,10 @@ class DeblurNet():
         ssim_loss_fS = 1 - self.SSIMloss.get_loss(self.fake_B_from_fS,self.real_B)
 
         loss_reblur = lambda_SSIM * ssim_loss_fS + lambda_d_reblur * loss_MSE_fS \
-                            + lambda_reg * reg_loss + lambda_d_tv * tv_loss 
+                             + lambda_d_tv * tv_loss 
 
 
-        self.loss_total = self.loss_adv_D   + loss_reblur 
+        self.loss_total = self.loss_adv_D   + loss_reblur  + self.loss_Mag_gt
 
         self.optimizer_M.zero_grad()
         self.loss_total.backward()
@@ -211,7 +218,7 @@ class DeblurNet():
 
         mix_real_batch = torch.cat((self.real_S[0:B:2],self.real_B[1:B:2]),dim=0)
         # import ipdb; ipdb.set_trace()
-        if "Synthetic" in self.config['train']['real_blur_videos'] or "RealBlur" in self.config['train']['real_blur_videos']:
+        if "Synthetic" in self.config['train']['real_blur_videos']:
             pred_real = self.net_naturalD(self.real_S)
         else:
             pred_real = self.net_naturalD(mix_real_batch)
@@ -225,7 +232,7 @@ class DeblurNet():
     
     def update_G(self,warmup=False):
         B,C,H,W = self.real_B.shape
-        half_B = 3*(B//4)
+        half_B = B//2
 
         lambda_G_fS = self.config['train']['lambda_G_f_sharp']
         lambda_G_idt = self.config['train']['lambda_G_idt']
@@ -239,22 +246,22 @@ class DeblurNet():
         mmap_real_B = self.net_M(self.real_B)
         mmap_fake_S_norm = self.vec_norm(mmap_fake_S)
         ### G_fs to zero
-        zero_tensor = torch.zeros_like(mmap_real_B).cuda()
-        self.loss_adv_G_fS =  self.L1loss(torch.abs(mmap_fake_S_norm[B//2:]), zero_tensor[B//2:])
+        # zero_tensor = torch.zeros_like(mmap_real_B).cuda()
+        # self.loss_adv_G_fS =  self.L1loss(torch.abs(mmap_fake_S_norm[half_B:]), zero_tensor[half_B:])
         ### G_fs to mean(real_S)  ##relativistic loss
-        # real_pool_query = torch.abs(self.real_pool.query())
-        # real_pool_mean = torch.mean(real_pool_query,(0,2,3))
-        # real_pool_mean = real_pool_mean.view(1,-1,1,1)
-        # self.loss_adv_G_fS =  torch.mean((torch.abs(mmap_fake_S_norm) - real_pool_mean)**2)
+        real_pool_query = torch.abs(self.real_pool.query())
+        real_pool_mean = torch.mean(real_pool_query,(0,2,3))
+        real_pool_mean = real_pool_mean.view(1,-1,1,1)
+        self.loss_adv_G_fS =  torch.mean((torch.abs(mmap_fake_S_norm) - real_pool_mean)**2)
         self.loss_adv_G = lambda_G_fS * self.loss_adv_G_fS 
         
         ## G tv loss
         # tv loss for blur map
-        self.G_tv_loss = self.L1loss(mmap_fake_S_norm[B//2:,:,:,:-1],mmap_fake_S_norm[B//2:,:,:,1:]) + \
-                        self.L1loss(mmap_fake_S_norm[B//2:,:,:-1,:],mmap_fake_S_norm[B//2:,:,1:,:])
+        self.G_tv_loss = self.L1loss(mmap_fake_S_norm[half_B:,:,:,:-1],mmap_fake_S_norm[half_B:,:,:,1:]) + \
+                        self.L1loss(mmap_fake_S_norm[half_B:,:,:-1,:],mmap_fake_S_norm[half_B:,:,1:,:])
         # tv loss for generated image
-        self.G_Itv_loss = self.L1loss(self.fake_S[B//2:,:,:,:-1],self.fake_S[B//2:,:,:,1:]) + \
-                        self.L1loss(self.fake_S[B//2:,:,:-1,:],self.fake_S[B//2:,:,1:,:])
+        self.G_Itv_loss = self.L1loss(self.fake_S[half_B:,:,:,:-1],self.fake_S[half_B:,:,:,1:]) + \
+                        self.L1loss(self.fake_S[half_B:,:,:-1,:],self.fake_S[half_B:,:,1:,:])
         
         
         # natural G loss

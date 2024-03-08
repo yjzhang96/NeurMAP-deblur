@@ -1,5 +1,5 @@
 # NeurMAP-deblur (official pytorch implementation)
-[[paper]]() [[video]]()
+[[paper]](https://arxiv.org/abs/2204.12139) 
 
 This repository provides the official PyTorch implementation of the paper:
 
@@ -43,29 +43,26 @@ Organize the dataset in the following form:
 ```
 
 ### Training 
-- To train motion offset estimation model, run the following command:
+- To train all the modules in a semi-supervised way, run the following command:
 ```bash
 sh run_semi_train.sh
 ```
 
 
 ### Test
-- To train motion offset estimation model, run the following command:
+- To test the model, run the following command:
 ```bash
 python test.py --config=configs/config_test.yaml
 ```
 
 
-### Performance
-- to be updated
-
 ### Model
-We have put the pretrained model in the Google drive.
+We have put the pretrained models in the Google drive.
 
 |   Dataset     |     Model  | |
 | :---------: |     :-------:       | :-------:  |
-|     kernel-synthesized    |     [DMPHN](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)          |   [MPRNet](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)       |
-|    RealBlur     |     [DMPHN](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)          |   [MPRNet](https://drive.google.com/drive/u/0/folders/1keoykuKd4-aLrhFrd6P_WnwYr0br-AUh)       |  
+|     kernel-synthesized    |     [DMPHN](https://drive.google.com/drive/u/0/folders/1hZOEkRAJtMyB8cynPtqiOePjPa4LscxH)          |   [MPRNet](https://drive.google.com/drive/u/0/folders/15851Yn71pJyr6zoE2ysH7xyW_op4O92-)       |
+|    RealBlur     |     [DMPHN](https://drive.google.com/drive/u/0/folders/18EY3kYOMwUATT2jfocGHhl5BnHC97epO)          |   [MPRNet](https://drive.google.com/drive/u/0/folders/1nr1-XdA4KQp15lmZWEJeBuPiGyBxLf6k)       |  
 
 
 

@@ -3,9 +3,8 @@ dataset_mode: unpair
 
 checkpoints: './checkpoints/Unpair'
 model_name: &MODEL_NAME DMPHN_unpairSyn_pretrain
-bmap_model: './checkpoints/reblur_gopro_exp2/D_net_latest.pth'
 MPR_model: './pretrain_models/MPRnet/model_deblurring.pth'
-DMPHN_model: 
+DMPHN_model: './pretrain_models/DMPHN/G_net_latest.pth'
 MTR_model: './pretrain_models/MTR/lin/latest_net_offset.pth'
 model_class: Baseline_finetune_unpair
 resume_train: false 

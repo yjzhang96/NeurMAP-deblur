@@ -51,9 +51,6 @@ if config['model_class'] == "Baseline_MAP":
 elif config['model_class'] == "Baseline_MAP_quad":
     Model = model_baseline_MAP_quad
     os.system('cp %s %s'%('models/model_baseline_MAP_quad.py', model_save_dir))
-elif config['model_class'] == "Baseline_double_D":
-    Model = model_semi_double_D
-    os.system('cp %s %s'%('models/model_semi_double_D.py', model_save_dir))
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
 

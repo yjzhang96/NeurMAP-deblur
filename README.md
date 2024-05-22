@@ -26,14 +26,30 @@ The contents of this repository are as follows:
 ---
 
 ### Prerequisites
+#### Environment
 - Pytorch 1.1.0 + cuda 10.0
 - You need to first install two repositories, [DCN_v2](https://github.com/chengdazhi/Deformable-Convolution-V2-PyTorch) and [MSSSIM](https://github.com/jorge-pessoa/pytorch-msssim), in the './model' directory, following their installation instructions respectively.
+#### Backbone model
+- You need to prepare the backbone model for finetuning. In our experiments, we have tried [DMPHN](https://github.com/HongguangZhang/DMPHN-cvpr19-master), [MPRNet](https://github.com/swz30/MPRNet), and [MIMO-UNet](https://github.com/chosj95/MIMO-UNet). For your convenience, we have upload corresponding model weights in [Google Drive](https://drive.google.com/drive/u/0/folders/1-bJ--advZpZh_G6-XDZkn_q46w9hBkSz). Feel free to download them and place them in folder ```pretrain_models```. 
+- Also, we have provide a pretrained motion offset estimation model in [Google Drive](https://drive.google.com/drive/u/0/folders/1QKzgZc6hHZ7qMMgPJDqAhqFDEY9DI9HV). You can organize the pretrained models as following:
+```
+|- pretrain_models
+|   |- MPRnet
+|   |   |- model_deblurring.pth
+|   |- DMPHN
+|   |   |- G_net_latest.pth
+|   |- MTR
+|   |   |- lin
+|   |   |   |- latest_net_offset.pth
+```
+
 ### Dataset
-Download [GoPro]((https://seungjunnah.github.io/Datasets/gopro.html)) datasets and algin the blurry/sharp image pairs.
-Organize the dataset in the following form:
+You will need both GoPro dataset (paired dataset) and an unpaired dataset to conduct the semi-supervised training. If you want to conduct unsupervised training, just prepare an unpaired dataset. 
+
+For GoPro dataset, Download from [data]((https://seungjunnah.github.io/Datasets/gopro.html)). Organize the dataset in the following form:
 
 ```bash
-|- Gopro_align_data 
+|- Gopro_dataset 
 |   |- train  % 2103 image pairs
 |   |   |- GOPR0372_07_00_000047.png
 |   |   |- ...

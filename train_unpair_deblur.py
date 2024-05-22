@@ -16,9 +16,7 @@ from data import dataloader_pair
 from data import dataloader_unpair
 
 
-from models import model_semi_double_D_GDaddB_finetune
-from models import model_baseline_finetune, model_baseline_finetune_unpair
-from models import model_semi_double_D_GOPRO
+from models import model_baseline_MAP, model_baseline_MAP_unpair
 from utils import utils
 from tensorboardX import SummaryWriter
 torch.manual_seed(0)
@@ -44,8 +42,8 @@ os.system('cp %s %s'%(args.config_file, model_save_dir))
 
 ### initialize model
 if config['model_class'] == "Baseline_finetune_unpair":
-    Model = model_baseline_finetune_unpair
-    os.system('cp %s %s'%('models/model_baseline_finetune_unpair.py', model_save_dir))
+    Model = model_baseline_MAP_unpair
+    os.system('cp %s %s'%('models/model_baseline_MAP_unpair.py', model_save_dir))
 
 else:
     raise ValueError("Model class [%s] not recognized." % config['model_class'])
